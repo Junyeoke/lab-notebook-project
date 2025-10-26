@@ -1,5 +1,6 @@
 package com.labnote.backend;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,4 +40,15 @@ public class Entry {
 
     @Column(nullable = true) // 파일은 선택 사항이므로 null 허용
     private String attachedFilePath; // 서버에 저장된 파일의 이름 (또는 경로)
+
+    // --- [추가된 부분] ---
+    @ManyToOne(fetch = FetchType.EAGER) // Entry를 조회할 때 Project 정보도 '즉시' 가져옴
+    @JoinColumn(name = "project_id", nullable = true) // DB에 'project_id'라는 외래 키 컬럼 생성
+    private Project project; // 이 Entry가 속한 Project 객체
+
+    // --- [추가된 부분] ---
+    @ManyToOne(fetch = FetchType.LAZY) // Entry 조회 시 User를 항상 가져올 필요는 없음 (LAZY)
+    @JoinColumn(name = "user_id", nullable = false) // 'user_id' 외래 키, null 불가
+    @JsonIgnore
+    private User user; // 이 노트의 소유자
 }
