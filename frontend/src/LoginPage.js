@@ -29,7 +29,7 @@ function LoginPage() {
     return (
         <div className="auth-container">
             <form className="auth-form" onSubmit={handleSubmit}>
-                <h2>실험 노트 로그인</h2>
+                <h2>LabLog 로그인</h2>
                 <div className="form-group">
                     <label>아이디 (Username)</label>
                     <input

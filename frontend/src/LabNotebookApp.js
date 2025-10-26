@@ -331,7 +331,7 @@ function LabNotebookApp() {
                         <div className="form-group">
                             <label htmlFor="researcher">실험자</label>
                             <input id="researcher" type="text" name="researcher" className="form-input"
-                                   value={formData.researcher} onChange={handleFormChange} placeholder="이름 (예: 이준혁)" />
+                                   value={formData.researcher} onChange={handleFormChange} placeholder="이름 (예: 홍길동)" />
                         </div>
                         <div className="form-group">
                             <label htmlFor="title">제목</label>
@@ -387,7 +387,7 @@ function LabNotebookApp() {
             {/* 1. 상단 헤더 (동일) */}
             <header className="app-header">
                 <FiFileText />
-                <h1>나의 실험 노트</h1>
+                <h1>LabLog</h1>
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '0.9rem' }}>{user?.username}님, 환영합니다.</span>
                     <button onClick={logout} className="icon-button delete-button" title="로그아웃"
