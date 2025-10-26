@@ -1,0 +1,33 @@
+# .gitignore 파일
+# (참고: https://www.toptal.com/developers/gitignore)
+
+# 1. OS/IDE 공통
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# 2. Java / Gradle (Spring Boot)
+/backend/build/
+/backend/.gradle/
+/backend/out/
+
+# 3. Node (React)
+/frontend/node_modules/
+/frontend/build/
+/frontend/.pnp
+/frontend/.pnp.js
+/frontend/coverage/
+
+# 4. 로그 파일
+*.log
+
+# 5. 환경 변수 파일 (비밀번호 등 민감 정보)
+.env
+*.properties
+# (주의! application.properties에 DB 비밀번호가 있습니다.
+# 지금은 토이 프로젝트이므로 편의상 commit하지만,
+# 외부에 공개(Public)할 GitHub 저장소라면 절대 포함하면 안 됩니다!)
+
+# (만약 application.properties를 제외하고 싶다면 아래 파일 경로의 주석을 해제)
+# /backend/src/main/resources/application.properties
