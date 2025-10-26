@@ -50,6 +50,24 @@ function LabNotebookApp() {
     const fileInputRef = useRef(null);
     // CKEditor는 editorRef가 필수는 아님
 
+    // --- [ 1. 추가 ] 로그아웃 확인 함수 ---
+    const handleLogoutConfirm = () => {
+        Swal.fire({
+            title: '로그아웃 하시겠습니까?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#005a9c', // Primary color
+            cancelButtonColor: '#6c757d', // Gray
+            confirmButtonText: '로그아웃',
+            cancelButtonText: '취소'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                logout(); // 사용자가 '로그아웃' 버튼을 누르면 실제 로그아웃 함수 호출
+                // 로그아웃 후 로그인 페이지로 리디렉션은 AuthContext나 ProtectedRoute에서 처리될 것임
+            }
+        });
+    };
+
     // --- 데이터 로딩 useEffect ---
     // 프로젝트 및 템플릿 로딩 (앱 마운트 시)
     useEffect(() => {
@@ -400,7 +418,7 @@ function LabNotebookApp() {
                         </div>
 
                         {/* 실험자, 제목 입력 필드 */}
-                        <div className="form-group"> <label htmlFor="researcher">실험자</label> <input id="researcher" type="text" name="researcher" className="form-input" value={formData.researcher} onChange={handleFormChange} placeholder="이름 (예: 이준혁)" /> </div>
+                        <div className="form-group"> <label htmlFor="researcher">실험자</label> <input id="researcher" type="text" name="researcher" className="form-input" value={formData.researcher} onChange={handleFormChange} placeholder="이름 (예: 홍길동)" /> </div>
                         <div className="form-group"> <label htmlFor="title">제목</label> <input id="title" type="text" name="title" className="form-input" value={formData.title} onChange={handleFormChange} placeholder="실험 제목 (필수)" required /> </div>
 
                         {/* CKEditor */}
@@ -449,10 +467,17 @@ function LabNotebookApp() {
         <div className="app-container">
             {/* 헤더 */}
             <header className="app-header">
-                <FiFileText /> <h1>나의 실험 노트</h1>
+                <FiFileText /> <h1>LabLog</h1>
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '0.9rem' }}>{user?.username}님, 환영합니다.</span>
-                    <button onClick={logout} className="icon-button delete-button" title="로그아웃" style={{ fontSize: '1.2rem', color: 'white', background: 'var(--color-primary-dark)' }}><FiLogOut /></button>
+                    {/* --- [ 2. 수정 ] onClick 핸들러 변경 --- */}
+                    <button
+                        onClick={handleLogoutConfirm} // logout() 대신 handleLogoutConfirm 호출
+                        className="icon-button delete-button"
+                        title="로그아웃"
+                        style={{ fontSize: '1.2rem', color: 'white', background: 'var(--color-primary-dark)' }}>
+                        <FiLogOut />
+                    </button>
                 </div>
             </header>
 
