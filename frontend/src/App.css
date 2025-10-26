@@ -103,3 +103,91 @@ h1, h2, h3 {
 .entry-item small {
   color: #777;
 }
+
+
+/* 폼 버튼 그룹 (저장, 취소) */
+.button-group {
+  display: flex; /* 버튼들을 가로로 나열 */
+  gap: 10px; /* 버튼 사이 간격 */
+}
+
+/* 취소 버튼 스타일 (기본 버튼과 다르게) */
+.cancel-button {
+  background-color: #6c757d; /* 회색 계열 */
+}
+.cancel-button:hover {
+  background-color: #5a6268;
+}
+
+/* 개별 기록 아이템의 버튼 영역 */
+.entry-buttons {
+  margin-top: 15px; /* 본문과 간격 띄우기 */
+  display: flex;
+  gap: 10px;
+}
+
+/* 개별 기록 - 수정 버튼 */
+.entry-buttons .edit-button {
+  background-color: #ffc107; /* 노란색 계열 */
+  color: #333;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.entry-buttons .edit-button:hover {
+  background-color: #e0a800;
+}
+
+/* 개별 기록 - 삭제 버튼 */
+.entry-buttons .delete-button {
+  background-color: #dc3545; /* 빨간색 계열 */
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.entry-buttons .delete-button:hover {
+  background-color: #c82333;
+}
+
+
+/* [수정] 첨부 파일 컨테이너 (이름 일반화) */
+.attached-file-container {
+  margin-top: 15px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+}
+/* 기존 .attached-image-container는 .attached-file-container로 변경하거나
+   아래 클래스만 추가해도 됩니다. */
+
+/* (기존) 첨부된 이미지 스타일 */
+.attached-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+/* [추가] 첨부된 문서(링크) 스타일 */
+.attached-document {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8f9fa; /* 밝은 회색 배경 */
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+}
+
+.attached-document a {
+  text-decoration: none; /* 밑줄 제거 */
+  color: #0056b3; /* 파란색 링크 */
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.attached-document a:hover {
+  text-decoration: underline; /* 호버 시 밑줄 표시 */
+}
