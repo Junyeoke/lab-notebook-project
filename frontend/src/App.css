@@ -841,3 +841,81 @@ body {
   border-top: none; /* Remove top border from note list */
   padding-top: 5px;
 }
+
+
+/* 17. [추가] 접기/펼치기 섹션 공통 스타일 */
+.collapsible-section {
+  /* 기존 project-list-section, template-list-section의 패딩 제거 */
+  padding: 0;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  /* max-height 제거 -> 내용에 따라 높이 자동 조절 */
+  /* overflow-y 제거 -> 섹션 자체가 스크롤되지 않음 */
+}
+
+/* 18. [추가] 접기/펼치기 헤더 스타일 */
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px; /* 내부 여백 */
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+.collapsible-header:hover {
+  background-color: #f8f9fa; /* 약간 밝은 배경색 */
+}
+.collapsible-header .header-content { /* 아이콘 + 제목 묶음 */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+.collapsible-header .header-content h4 {
+  margin: 0;
+}
+.collapsible-header svg { /* 헤더 내 모든 아이콘 기본 스타일 */
+  color: var(--color-text-light);
+  font-size: 1.1rem;
+  transition: transform var(--transition-fast); /* 아이콘 회전 애니메이션 */
+}
+/* 펼침/접힘 아이콘(오른쪽) 스타일 조정 */
+.collapsible-header > svg:last-child {
+  font-size: 1rem;
+}
+
+
+/* 19. [추가] 접기/펼치기 콘텐츠 영역 스타일 */
+.collapsible-content {
+  /* 내부 콘텐츠에 원래 패딩 적용 */
+  padding: 0px 10px 15px 10px;
+  /* 애니메이션 효과 (선택사항) */
+  /* max-height와 overflow hidden을 이용한 슬라이드 효과 */
+  /* max-height: 500px; /* 충분히 큰 값 */
+  /* overflow: hidden; */
+  /* transition: max-height 0.3s ease-in-out; */
+  /* (max-height 애니메이션은 성능 이슈가 있을 수 있어 일단 제외) */
+}
+/* 접혔을 때 (애니메이션 사용 시) */
+/* .collapsible-section:not(.expanded) .collapsible-content { */
+/* max-height: 0; */
+/* } */
+
+
+/* 20. [수정] 프로젝트/템플릿 목록 섹션의 기존 패딩 재조정 */
+/* project-list-section과 template-list-section 클래스 자체에는 이제 패딩이 없음 */
+/* 내부 collapsible-content에 패딩이 있음 */
+
+
+/* 21. [수정] 헤더 로그아웃 버튼 스타일 조정 */
+.app-header .logout-button { /* 특정 클래스 지정 */
+  font-size: 1.2rem;
+  color: white;
+  background: var(--color-primary-dark);
+  padding: 6px; /* 아이콘 버튼 패딩 조정 */
+}
+.app-header .logout-button:hover {
+  background: var(--color-danger); /* 호버 시 빨간색 */
+}
