@@ -919,3 +919,77 @@ body {
 .app-header .logout-button:hover {
   background: var(--color-danger); /* 호버 시 빨간색 */
 }
+
+
+/* [추가] 아이디 중복 체크 상태 메시지 */
+.username-status {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 5px;
+  /* 메시지 영역 높이를 고정하여 레이아웃이 밀리는 것을 방지 */
+  height: 1.2em;
+}
+
+.username-status.available {
+  color: green; /* 사용 가능: 초록색 */
+}
+
+.username-status.unavailable {
+  color: #d93025; /* 사용 불가: 빨간색 */
+}
+
+.username-status.checking {
+  color: #555; /* 확인 중: 회색 */
+  font-style: italic;
+}
+
+/* [추가] 회원가입 버튼 비활성화 시 스타일 */
+.form-submit-btn:disabled {
+  background-color: #a0a0a0; /* 회색 */
+  cursor: not-allowed;
+}
+.form-submit-btn:disabled:hover {
+  background-color: #a0a0a0;
+}
+
+
+/* 22. [추가] 드래그 앤 드롭(DND) 스타일 */
+
+/* 드래그 중인 노트 카드 (NoteCard) */
+.note-card[data-dragging="true"] {
+  opacity: 0.5;
+  border: 2px dashed var(--color-primary);
+}
+
+/* 드롭 가능한 프로젝트 아이템 (ProjectDropTarget) */
+.project-item.droppable {
+  /* (기본 스타일) */
+}
+
+/* 드롭 가능한 아이템 위에 노트가 올라와 있을 때 (isOver=true, canDrop=true) */
+.project-item[data-hovered="true"] {
+  background-color: var(--color-secondary) !important; /* !important로 active 스타일 덮어쓰기 */
+  border: 2px dashed var(--color-primary);
+  transform: scale(1.02);
+}
+
+
+/* 23. [추가] 노트 목록 상단 도움말 팁 */
+.note-list-tip {
+  display: flex;
+  align-items: center; /* 아이콘과 텍스트 정렬 */
+  gap: 8px; /* 아이콘과 텍스트 간격 */
+  padding: 10px 12px;
+  margin: 5px 10px 10px 10px; /* 노트 목록 패딩과 맞춤 */
+  background-color: var(--color-secondary); /* 연한 파란색 배경 */
+  border: 1px solid #bde7ff; /* 파란색 계열 테두리 */
+  border-radius: var(--border-radius);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-primary-dark); /* 진한 파란색 텍스트 */
+}
+
+.note-list-tip svg {
+  flex-shrink: 0; /* 아이콘이 찌그러지지 않게 */
+  font-size: 1rem;
+}

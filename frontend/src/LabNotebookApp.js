@@ -5,11 +5,17 @@ import { useAuth } from './AuthContext';
 // CKEditor 임포트
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
+// DND import
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+
 import {
     FiFileText, FiPlus, FiEdit, FiTrash2, FiFile, FiSave,
     FiFolder, FiArchive, FiTag, FiChevronsRight, FiInbox, FiLogOut,
     FiSearch, FiClipboard, FiCopy,
-    FiChevronDown, FiChevronRight // 펼침/접힘 아이콘
+    FiChevronDown, FiChevronRight,
+    FiInfo // [ 1. 아이콘 추가 ]
 } from 'react-icons/fi';
 import './App.css';
 
@@ -17,6 +23,10 @@ const ENTRY_API_URL = '/entries';
 const PROJECT_API_URL = '/projects';
 const TEMPLATE_API_URL = '/templates';
 const UPLOAD_URL = 'http://localhost:8080/uploads/';
+
+const ItemTypes = {
+    NOTE: 'note',
+};
 
 // 디바운스 훅
 function useDebounce(value, delay) {
@@ -29,6 +39,47 @@ function useDebounce(value, delay) {
     }, [value, delay]);
     return debouncedValue;
 }
+
+// 유틸리티 함수
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+        return new Date(dateString).toLocaleString('ko-KR', {
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+    } catch (e) {
+        console.error("날짜 포맷팅 오류:", e);
+        return 'Invalid Date';
+    }
+};
+
+// NoteCard 컴포넌트 (Drag 기능 포함)
+const NoteCard = ({ entry, onClick, isSelected }) => {
+    const [{ isDragging }, dragRef] = useDrag(() => ({
+        type: ItemTypes.NOTE,
+        item: { id: entry.id, currentProjectId: entry.project?.id || null },
+        collect: (monitor) => ({
+            isDragging: !!monitor.isDragging(),
+        }),
+    }));
+
+    const summary = entry.content?.replace(/<[^>]+>/g, '').substring(0, 100) +
+        (entry.content && entry.content.length > 100 ? '...' : '') || '내용 없음';
+
+    return (
+        <div
+            ref={dragRef}
+            className={`note-card ${isSelected ? 'selected' : ''}`}
+            style={{ opacity: isDragging ? 0.5 : 1 }}
+            data-dragging={isDragging}
+            onClick={onClick}
+        >
+            <h3>{entry.title}</h3>
+            <p dangerouslySetInnerHTML={{ __html: summary }} />
+            <small>{formatDate(entry.updatedAt)}</small>
+        </div>
+    );
+};
 
 
 function LabNotebookApp() {
@@ -48,8 +99,6 @@ function LabNotebookApp() {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const fileInputRef = useRef(null);
-
-    // 섹션 펼침/접힘 상태
     const [isProjectsExpanded, setIsProjectsExpanded] = useState(true);
     const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(true);
 
@@ -122,19 +171,81 @@ function LabNotebookApp() {
         const parts = storedFileName.split('_');
         return parts.length > 1 ? parts.slice(1).join('_') : storedFileName;
     };
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
+
+
+    // --- DND 핸들러 ---
+    const handleNoteDrop = async (noteId, targetProjectId, currentProjectId) => {
+        const targetId = targetProjectId || null;
+        if (targetId === currentProjectId) {
+            return;
+        }
+        const noteToMove = entries.find(e => e.id === noteId);
+        if (!noteToMove) return;
+        const originalEntries = entries;
+
+        // (UX) Optimistic Update: 현재 뷰에서 노트를 즉시 제거
+        setEntries(prevEntries => prevEntries.filter(entry => entry.id !== noteId));
+
         try {
-            return new Date(dateString).toLocaleString('ko-KR', {
-                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            });
-        } catch (e) {
-            console.error("날짜 포맷팅 오류:", e);
-            return 'Invalid Date';
+            const entryData = {
+                title: noteToMove.title,
+                content: noteToMove.content,
+                researcher: noteToMove.researcher,
+            };
+            const formPayload = new FormData();
+            formPayload.append("entry", JSON.stringify(entryData));
+            if (targetId) {
+                formPayload.append("projectId", targetId);
+            }
+            await api.put(`${ENTRY_API_URL}/${noteId}`, formPayload);
+
+            Swal.fire({ icon: 'success', title: '노트 이동 완료!', showConfirmButton: false, timer: 1000 });
+
+            // 이동한 프로젝트(타겟)를 사이드바에서 선택
+            setSelectedProjectId(targetId || 'uncategorized');
+            setSearchQuery(""); // 검색어 초기화
+            setCurrentView('welcome');
+            setSelectedEntry(null);
+
+        } catch (error) {
+            console.error("노트 이동 실패:", error);
+            // API 실패 시 UI 롤백
+            setEntries(originalEntries);
+            Swal.fire('오류', '노트 이동에 실패했습니다.', 'error');
         }
     };
 
-    // --- 이벤트 핸들러 ---
+
+    // --- ProjectDropTarget 내부 컴포넌트 ---
+    const ProjectDropTarget = ({ project, onClick, className, children }) => {
+        const [{ isOver, canDrop }, dropRef] = useDrop(() => ({
+            accept: ItemTypes.NOTE,
+            drop: (item, monitor) => {
+                handleNoteDrop(item.id, project?.id || null, item.currentProjectId);
+            },
+            canDrop: (item, monitor) => {
+                return (project?.id || null) !== item.currentProjectId;
+            },
+            collect: (monitor) => ({
+                isOver: !!monitor.isOver(),
+                canDrop: !!monitor.canDrop(),
+            }),
+        }), [project, handleNoteDrop]);
+
+        return (
+            <div
+                ref={dropRef}
+                className={`${className} ${canDrop ? 'droppable' : ''}`}
+                onClick={onClick}
+                data-hovered={isOver && canDrop}
+            >
+                {children}
+            </div>
+        );
+    };
+
+
+    // --- 나머지 이벤트 핸들러 ---
     const handleCreateNewClick = () => {
         resetForm();
         setSelectedEntry(null);
@@ -214,7 +325,6 @@ function LabNotebookApp() {
                 response = await api.post(ENTRY_API_URL, formPayload);
                 const newEntry = response.data;
                 setSearchQuery("");
-                setEntries([newEntry, ...entries]);
                 setSelectedEntry(newEntry);
                 if (newEntry.project) setSelectedProjectId(newEntry.project.id);
                 else setSelectedProjectId('uncategorized');
@@ -331,6 +441,7 @@ function LabNotebookApp() {
         });
     };
 
+
     // --- JSX 렌더링 ---
     const renderMainContent = () => {
         switch (currentView) {
@@ -404,6 +515,7 @@ function LabNotebookApp() {
                 return renderWelcomeView();
         }
     };
+    // 환영 메시지 뷰
     const renderWelcomeView = () => (
         <div className="welcome-view">
             <FiFileText />
@@ -412,87 +524,108 @@ function LabNotebookApp() {
         </div>
     );
 
-    // 메인 앱 레이아웃
+
+    // [ 7. DndProvider로 앱 감싸기 ]
     return (
-        <div className="app-container">
-            {/* 헤더 */}
-            <header className="app-header">
-                <FiFileText /> <h1>LabLog</h1>
-                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '0.9rem' }}>{user?.username}님</span>
-                    <button onClick={handleLogoutConfirm} className="icon-button logout-button" title="로그아웃"> <FiLogOut /> </button>
-                </div>
-            </header>
-
-            {/* 메인 바디 (2단) */}
-            <div className="app-body">
-                {/* 왼쪽 사이드바 */}
-                <nav className="sidebar">
-                    {/* 새 노트 버튼 */}
-                    <div className="sidebar-header"> <button className="create-note-btn" onClick={handleCreateNewClick}><FiPlus /> 새 노트 작성</button> </div>
-
-                    {/* 프로젝트 목록 섹션 */}
-                    <div className="project-list-section collapsible-section">
-                        <div className="collapsible-header" onClick={() => setIsProjectsExpanded(!isProjectsExpanded)}>
-                            <div className="header-content"><FiFolder /><h4>프로젝트</h4></div>
-                            {isProjectsExpanded ? <FiChevronDown /> : <FiChevronRight />}
-                        </div>
-                        {isProjectsExpanded && (
-                            <div className="collapsible-content">
-                                <div className={`project-item ${selectedProjectId === 'all' ? 'active' : ''}`} onClick={() => handleProjectSelect('all')}><FiChevronsRight /> <span>전체 노트</span></div>
-                                <div className={`project-item ${selectedProjectId === 'uncategorized' ? 'active' : ''}`} onClick={() => handleProjectSelect('uncategorized')}><FiInbox /> <span>미분류 노트</span></div>
-                                {projects.map(project => (
-                                    <div key={project.id} className={`project-item ${selectedProjectId === project.id ? 'active' : ''}`} onClick={() => handleProjectSelect(project.id)}>
-                                        <FiTag /> <span>{project.name}</span>
-                                        <button className="project-delete-btn" title="프로젝트 삭제" onClick={(e) => handleDeleteProject(e, project)}><FiTrash2 /></button>
-                                    </div>
-                                ))}
-                                <form className="add-project-form" onSubmit={handleCreateProject}> <input type="text" placeholder="새 프로젝트 이름..." value={newProjectName} onChange={(e) => setNewProjectName(e.target.value)} /> <button type="submit">+</button> </form>
-                            </div>
-                        )}
+        <DndProvider backend={HTML5Backend}>
+            <div className="app-container">
+                {/* 헤더 */}
+                <header className="app-header">
+                    <FiFileText /> <h1>LabLog</h1>
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '0.9rem' }}>{user?.username}님</span>
+                        <button onClick={handleLogoutConfirm} className="icon-button logout-button" title="로그아웃"> <FiLogOut /> </button>
                     </div>
+                </header>
 
-                    {/* 템플릿 목록 섹션 */}
-                    <div className="template-list-section collapsible-section">
-                        <div className="collapsible-header" onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}>
-                            <div className="header-content"><FiClipboard /><h4>템플릿</h4></div>
-                            {isTemplatesExpanded ? <FiChevronDown /> : <FiChevronRight />}
-                        </div>
-                        {isTemplatesExpanded && (
-                            <div className="collapsible-content">
-                                {templates.length > 0 ? (
-                                    templates.map(template => (
-                                        <div key={template.id} className="template-item">
-                                            <span>{template.name}</span>
-                                            <button className="template-delete-btn" title="템플릿 삭제" onClick={(e) => handleDeleteTemplate(e, template)}> <FiTrash2 /> </button>
-                                        </div>
-                                    ))
-                                ) : ( <p className="template-list-empty">저장된 템플릿이 없습니다.</p> )}
+                {/* 메인 바디 (2단) */}
+                <div className="app-body">
+                    {/* 왼쪽 사이드바 */}
+                    <nav className="sidebar">
+                        {/* 새 노트 버튼 */}
+                        <div className="sidebar-header"> <button className="create-note-btn" onClick={handleCreateNewClick}><FiPlus /> 새 노트 작성</button> </div>
+
+                        {/* 프로젝트 목록 섹션 [ 8. 수정 ] */}
+                        <div className="project-list-section collapsible-section">
+                            <div className="collapsible-header" onClick={() => setIsProjectsExpanded(!isProjectsExpanded)}>
+                                <div className="header-content"><FiFolder /><h4>프로젝트</h4></div>
+                                {isProjectsExpanded ? <FiChevronDown /> : <FiChevronRight />}
                             </div>
-                        )}
-                    </div>
-
-                    {/* 검색창 */}
-                    <div className="sidebar-search"> <FiSearch className="search-icon" /> <input type="text" placeholder="노트 제목 및 내용 검색..." value={searchQuery} onChange={handleSearchChange} /> </div>
-                    {/* 노트 목록 */}
-                    <div className="note-list">
-                        {searchQuery && (<div className="search-result-header">'<strong>{debouncedSearchQuery}</strong>' 검색 결과</div>)}
-                        {entries.length > 0 ? (
-                            entries.map(entry => (
-                                <div key={entry.id} className={`note-card ${selectedEntry?.id === entry.id ? 'selected' : ''}`} onClick={() => handleNoteCardClick(entry)}>
-                                    <h3>{entry.title}</h3>
-                                    <p dangerouslySetInnerHTML={{ __html: entry.content?.replace(/<[^>]+>/g, '').substring(0, 100) + (entry.content && entry.content.length > 100 ? '...' : '') || '내용 없음' }} />
-                                    <small>{formatDate(entry.updatedAt)}</small>
+                            {isProjectsExpanded && (
+                                <div className="collapsible-content">
+                                    <div className={`project-item ${selectedProjectId === 'all' ? 'active' : ''}`} onClick={() => handleProjectSelect('all')}><FiChevronsRight /> <span>전체 프로젝트</span></div>
+                                    <ProjectDropTarget project={null} className={`project-item ${selectedProjectId === 'uncategorized' ? 'active' : ''}`} onClick={() => handleProjectSelect('uncategorized')}>
+                                        <FiInbox /> <span>미분류 프로젝트</span>
+                                    </ProjectDropTarget>
+                                    {projects.map(project => (
+                                        <ProjectDropTarget
+                                            key={project.id}
+                                            project={project}
+                                            className={`project-item ${selectedProjectId === project.id ? 'active' : ''}`}
+                                            onClick={() => handleProjectSelect(project.id)}
+                                        >
+                                            <FiTag /> <span>{project.name}</span>
+                                            <button className="project-delete-btn" title="프로젝트 삭제" onClick={(e) => handleDeleteProject(e, project)}><FiTrash2 /></button>
+                                        </ProjectDropTarget>
+                                    ))}
+                                    <form className="add-project-form" onSubmit={handleCreateProject}> <input type="text" placeholder="새 프로젝트 이름..." value={newProjectName} onChange={(e) => setNewProjectName(e.target.value)} /> <button type="submit">+</button> </form>
                                 </div>
-                            ))
-                        ) : ( <p className="note-list-empty">{searchQuery ? '검색 결과가 없습니다.' : '이 프로젝트에는 노트가 없습니다.'}</p> )}
-                    </div>
-                </nav>
+                            )}
+                        </div>
 
-                {/* 오른쪽 메인 콘텐츠 */}
-                <main className="main-content">{renderMainContent()}</main>
+                        {/* 템플릿 목록 섹션 */}
+                        <div className="template-list-section collapsible-section">
+                            <div className="collapsible-header" onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}>
+                                <div className="header-content"><FiClipboard /><h4>템플릿</h4></div>
+                                {isTemplatesExpanded ? <FiChevronDown /> : <FiChevronRight />}
+                            </div>
+                            {isTemplatesExpanded && (
+                                <div className="collapsible-content">
+                                    {templates.length > 0 ? (
+                                        templates.map(template => (
+                                            <div key={template.id} className="template-item">
+                                                <span>{template.name}</span>
+                                                <button className="template-delete-btn" title="템플릿 삭제" onClick={(e) => handleDeleteTemplate(e, template)}> <FiTrash2 /> </button>
+                                            </div>
+                                        ))
+                                    ) : ( <p className="template-list-empty">저장된 템플릿이 없습니다.</p> )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 검색창 */}
+                        <div className="sidebar-search"> <FiSearch className="search-icon" /> <input type="text" placeholder="노트 제목 및 내용 검색..." value={searchQuery} onChange={handleSearchChange} /> </div>
+
+                        {/* 노트 목록 [ 9. 수정 ] */}
+                        <div className="note-list">
+                            {searchQuery && (<div className="search-result-header">'<strong>{debouncedSearchQuery}</strong>' 검색 결과</div>)}
+
+                            {/* [ 10. 도움말 팁 추가 ] */}
+                            {!searchQuery && entries.length > 0 && (
+                                <div className="note-list-tip">
+                                    <FiInfo />
+                                    <span>Tip: 노트를 드래그하여 위 프로젝트로 이동시킬 수 있습니다.</span>
+                                </div>
+                            )}
+
+                            {entries.length > 0 ? (
+                                entries.map(entry => (
+                                    <NoteCard
+                                        key={entry.id}
+                                        entry={entry}
+                                        onClick={() => handleNoteCardClick(entry)}
+                                        isSelected={selectedEntry?.id === entry.id} // 선택 상태 전달
+                                    />
+                                ))
+                            ) : ( <p className="note-list-empty">{searchQuery ? '검색 결과가 없습니다.' : '이 프로젝트에는 노트가 없습니다.'}</p> )}
+                        </div>
+                    </nav>
+
+                    {/* 오른쪽 메인 콘텐츠 */}
+                    <main className="main-content">{renderMainContent()}</main>
+                </div>
             </div>
-        </div>
+        </DndProvider> // DndProvider 닫기
     );
 }
 
