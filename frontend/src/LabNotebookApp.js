@@ -113,7 +113,7 @@ function LabNotebookApp() {
     const [newProjectName, setNewProjectName] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearchQuery = useDebounce(searchQuery, 300);
-    const [formData, setFormData] = useState({ title: '', content: '', researcher: '', projectId: '' });
+    const [formData, setFormData] = useState({ title: '', content: '', researcher: '', projectId: '', tags: '' });
     const [currentView, setCurrentView] = useState('welcome');
     const [selectedEntry, setSelectedEntry] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -169,7 +169,7 @@ function LabNotebookApp() {
 
     const formats = [
         'header', 'bold', 'italic', 'underline', 'strike', 'blockquote',
-        'list', 'bullet', 'indent', 'link', 'image', 'align', 'color', 'background',
+        'list', 'indent', 'link', 'image', 'align', 'color', 'background',
     ];
 
     // [추가] 붙여넣기 된 Base64 이미지를 처리하는 useEffect
@@ -271,7 +271,7 @@ function LabNotebookApp() {
 
     // --- 유틸리티 함수 ---
     const resetForm = () => {
-        setFormData({ title: '', content: '', researcher: '', projectId: '' });
+        setFormData({ title: '', content: '', researcher: '', projectId: '', tags: '' });
         setSelectedFile(null);
         if (fileInputRef.current) fileInputRef.current.value = null;
         setIsEditing(false);
@@ -391,7 +391,8 @@ function LabNotebookApp() {
             title: selectedEntry.title,
             content: selectedEntry.content || '',
             researcher: selectedEntry.researcher,
-            projectId: selectedEntry.project ? selectedEntry.project.id : ''
+            projectId: selectedEntry.project ? selectedEntry.project.id : '',
+            tags: selectedEntry.tags ? selectedEntry.tags.join(', ') : ''
         });
         setIsEditing(true);
         setCurrentView('form');
@@ -421,7 +422,11 @@ function LabNotebookApp() {
             Swal.fire({ icon: 'warning', title: '입력 오류', text: '제목과 내용은 필수입니다.' });
             return;
         }
-        const { projectId, ...entryData } = formData;
+
+        // [수정] 태그 문자열을 배열로 변환
+        const tagsArray = formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+        const { projectId, ...entryData } = { ...formData, tags: tagsArray };
+
         const formPayload = new FormData();
         formPayload.append("entry", JSON.stringify(entryData));
         if (projectId) formPayload.append("projectId", projectId);
@@ -575,6 +580,13 @@ function LabNotebookApp() {
                             <span><strong>실험자:</strong> {selectedEntry.researcher || '미기입'}</span>
                             <span><strong>최종 수정일:</strong> {formatDate(selectedEntry.updatedAt)}</span>
                         </div>
+                        {selectedEntry.tags && selectedEntry.tags.length > 0 && (
+                            <div className="tag-list">
+                                {selectedEntry.tags.map((tag, index) => (
+                                    <span key={index} className="tag-badge">{tag}</span>
+                                ))}
+                            </div>
+                        )}
                         <div className="detail-content">
                             <div dangerouslySetInnerHTML={{ __html: selectedEntry.content || '' }} />
                         </div>
@@ -607,6 +619,7 @@ function LabNotebookApp() {
                         </div>
                         <div className="form-group"> <label htmlFor="researcher">실험자</label> <input id="researcher" type="text" name="researcher" className="form-input" value={formData.researcher} onChange={handleFormChange} placeholder="이름 (예: 홍길동)" /> </div>
                         <div className="form-group"> <label htmlFor="title">제목</label> <input id="title" type="text" name="title" className="form-input" value={formData.title} onChange={handleFormChange} placeholder="실험 제목 (필수)" required /> </div>
+                        <div className="form-group"> <label htmlFor="tags">태그</label> <input id="tags" type="text" name="tags" className="form-input" value={formData.tags} onChange={handleFormChange} placeholder="쉼표(,)로 태그를 구분하세요 (예: 실험, 데이터, 분석)" /> </div>
                         <div className="form-group">
                             <label htmlFor="content">실험 내용</label>
                             <ReactQuill

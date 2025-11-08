@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity // 이 클래스가 데이터베이스 테이블과 매핑됨을 선언
 @Table(name = "entries") // 테이블 이름을 'entries'로 지정
@@ -37,6 +39,11 @@ public class Entry {
 
     @UpdateTimestamp // 데이터가 수정될 때 현재 시간을 자동으로 저장
     private LocalDateTime updatedAt; // 수정 일시
+
+    @ElementCollection(fetch = FetchType.EAGER) // [추가]
+    @CollectionTable(name = "entry_tags", joinColumns = @JoinColumn(name = "entry_id")) // [추가]
+    @Column(name = "tag") // [추가]
+    private List<String> tags = new ArrayList<>(); // [추가] 태그 목록
 
     @Column(nullable = true) // 파일은 선택 사항이므로 null 허용
     private String attachedFilePath; // 서버에 저장된 파일의 이름 (또는 경로)

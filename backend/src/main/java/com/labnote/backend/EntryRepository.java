@@ -14,17 +14,10 @@ public interface EntryRepository extends JpaRepository<Entry, Long> {
     List<Entry> findByUser(User user);
     Optional<Entry> findByIdAndUser(Long id, User user);
 
-    // --- [수정된 부분] ---
-    /**
-     * 특정 사용자의 노트 중에서 제목(title - 대소문자 무시) 또는 내용(content - 대소문자 구분)에
-     * 검색어가 포함된 모든 노트를 찾습니다.
-     * @param user 검색할 사용자
-     * @param query 검색어 (예: "DNA")
-     * @return 일치하는 노트 리스트
-     */
-    @Query("SELECT e FROM Entry e WHERE e.user = :user AND " +
+    // [수정] 검색 쿼리에 태그 검색 추가 및 content의 LOWER 제거
+    @Query("SELECT DISTINCT e FROM Entry e LEFT JOIN e.tags t WHERE e.user = :user AND " +
             "(LOWER(e.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-            // [수정] e.content 주변의 LOWER() 함수 제거
-            "e.content LIKE CONCAT('%', :query, '%'))")
+            "e.content LIKE CONCAT('%', :query, '%') OR " +
+            "LOWER(t) LIKE LOWER(CONCAT('%', :query, '%')))")
     List<Entry> searchByUser(@Param("user") User user, @Param("query") String query);
 }

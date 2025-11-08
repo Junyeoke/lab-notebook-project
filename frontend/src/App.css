@@ -294,8 +294,37 @@ body {
   flex-direction: column;
   gap: 5px;
 }
+
+/* [추가] 태그 표시 스타일 */
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.tag-badge {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 5px 10px;
+    border-radius: 12px; /* 둥근 모서리 */
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
 .detail-content {
   margin-bottom: 30px;
+}
+
+/* [추가] 노트 본문 내 이미지 스타일 */
+.detail-content img {
+    max-width: 100%;
+    height: auto;
+    max-height: 600px; /* 이미지 최대 높이 제한 */
+    border-radius: var(--border-radius);
+    margin: 1em 0; /* 위아래 여백 */
+    display: block; /* 가운데 정렬 등을 위해 block으로 변경 */
+    margin-left: auto;
+    margin-right: auto;
 }
 .detail-content p {
   white-space: pre-wrap;
