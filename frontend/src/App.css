@@ -326,6 +326,144 @@ body {
     margin-left: auto;
     margin-right: auto;
 }
+
+/* [추가] 버전 기록 패널 스타일 */
+.history-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.history-panel {
+    background: var(--color-bg-white);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-medium);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.history-panel h2 {
+    margin: 0 0 20px 0;
+    color: var(--color-text-dark);
+}
+
+.history-panel .close-history-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--color-text-light);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.history-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.history-panel li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--color-border);
+}
+.history-panel li:last-child {
+    border-bottom: none;
+}
+
+.history-panel li span {
+    font-size: 0.95rem;
+    color: var(--color-text-dark);
+}
+
+.history-panel .restore-btn {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color var(--transition-fast);
+}
+
+.history-panel .restore-btn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+/* [추가] Diff 뷰어 스타일 */
+.history-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.history-panel-header h2 {
+    margin: 0;
+}
+
+.back-to-list-btn {
+    background: none;
+    border: 1px solid var(--color-border);
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    transition: background-color var(--transition-fast);
+}
+.back-to-list-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.diff-viewer-container {
+    margin: 15px 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    overflow-y: auto; /* Diff 내용이 길 경우 스크롤 */
+    max-height: 45vh;
+}
+
+.history-panel .compare-btn {
+    background-color: #e9ecef;
+    color: #495057;
+    border: none;
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color var(--transition-fast);
+}
+.history-panel .compare-btn:hover {
+    background-color: #dee2e6;
+}
+
+.history-panel .restore-btn.large {
+    padding: 12px 20px;
+    font-size: 1rem;
+    margin-top: 15px;
+    width: 100%;
+}
 .detail-content p {
   white-space: pre-wrap;
   font-size: 1.05rem;

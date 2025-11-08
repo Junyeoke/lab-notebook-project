@@ -2,20 +2,17 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import api from './api';
 import Swal from 'sweetalert2';
 import { useAuth } from './AuthContext';
-// ReactQuill 임포트
-import ReactQuill from 'react-quill-new';
+import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-
-// DND import
+import ReactDiffViewer from 'react-diff-viewer';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-
 import {
     FiFileText, FiPlus, FiEdit, FiTrash2, FiFile, FiSave,
     FiFolder, FiArchive, FiTag, FiChevronsRight, FiInbox, FiLogOut,
     FiSearch, FiClipboard, FiCopy,
     FiChevronDown, FiChevronRight,
-    FiInfo
+    FiInfo, FiDownload, FiClock
 } from 'react-icons/fi';
 import './App.css';
 
@@ -118,6 +115,9 @@ function LabNotebookApp() {
     const [selectedEntry, setSelectedEntry] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [versionHistory, setVersionHistory] = useState([]);
+    const [showHistory, setShowHistory] = useState(false);
+    const [diffWithVersion, setDiffWithVersion] = useState(null); // [추가] Diff 뷰를 위한 상태
     const fileInputRef = useRef(null);
     const quillRef = useRef(null);
     const [isProjectsExpanded, setIsProjectsExpanded] = useState(true);
@@ -275,6 +275,9 @@ function LabNotebookApp() {
         setSelectedFile(null);
         if (fileInputRef.current) fileInputRef.current.value = null;
         setIsEditing(false);
+        setShowHistory(false);
+        setVersionHistory([]);
+        setDiffWithVersion(null); // [추가]
     };
     const isImageFile = (filename) => {
         if (!filename) return false;
@@ -305,6 +308,7 @@ function LabNotebookApp() {
                 title: noteToMove.title,
                 content: noteToMove.content,
                 researcher: noteToMove.researcher,
+                tags: noteToMove.tags,
             };
             const formPayload = new FormData();
             formPayload.append("entry", JSON.stringify(entryData));
@@ -560,11 +564,92 @@ function LabNotebookApp() {
         });
     };
 
+    const handleExportMarkdown = async (entryId, entryTitle) => {
+        try {
+            const response = await api.get(`${ENTRY_API_URL}/${entryId}/export/markdown`, {
+                responseType: 'blob', // [수정] 응답 타입을 blob으로 지정
+            });
+
+            // [수정] Content-Disposition 헤더에서 파일 이름 추출
+            const contentDisposition = response.headers['content-disposition'];
+            let fileName = `${entryTitle.replace(/\s/g, '_') || 'entry'}.md`; // 기본 파일명
+            if (contentDisposition) {
+                const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
+                if (fileNameMatch.length === 2)
+                    fileName = fileNameMatch[1];
+            }
+
+            // Blob URL을 생성하여 다운로드 링크로 사용
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+
+            // 다운로드 후 링크와 URL 정리
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error("마크다운 내보내기 실패:", error);
+            Swal.fire('오류', '마크다운 내보내기에 실패했습니다.', 'error');
+        }
+    };
+
+    // [수정] 버전 기록 보기 핸들러
+    const handleShowHistory = async () => {
+        if (!selectedEntry) return;
+        try {
+            const response = await api.get(`${ENTRY_API_URL}/${selectedEntry.id}/versions`);
+            setVersionHistory(response.data);
+            setShowHistory(true);
+            setDiffWithVersion(null); // Diff 뷰 초기화
+        } catch (error) {
+            console.error("버전 기록 로딩 실패:", error);
+            Swal.fire('오류', '버전 기록을 불러오는 데 실패했습니다.', 'error');
+        }
+    };
+
+    // [수정] 버전 복원 핸들러
+    const handleRestoreVersion = async (versionId) => {
+        if (!selectedEntry) return;
+
+        Swal.fire({
+            title: '버전을 복원하시겠습니까?',
+            text: "복원 작업은 현재 내용을 덮어쓰지만, 복원 직전의 내용도 새 버전으로 저장됩니다.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#005a9c',
+            confirmButtonText: '복원',
+            cancelButtonText: '취소'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await api.post(`${ENTRY_API_URL}/${selectedEntry.id}/versions/${versionId}/restore`);
+                    const restoredEntry = response.data;
+
+                    // UI 업데이트
+                    setEntries(entries.map(entry => entry.id === restoredEntry.id ? restoredEntry : entry));
+                    setSelectedEntry(restoredEntry);
+                    setShowHistory(false);
+                    setVersionHistory([]);
+                    setDiffWithVersion(null);
+
+                    Swal.fire('복원 완료!', '선택한 버전으로 노트가 복원되었습니다.', 'success');
+                } catch (error) {
+                    console.error("버전 복원 실패:", error);
+                    Swal.fire('오류', '버전 복원에 실패했습니다.', 'error');
+                }
+            }
+        });
+    };
+
 
     // --- JSX 렌더링 ---
     const renderMainContent = () => {
         switch (currentView) {
-            case 'read':
+            case 'read': // 상세 보기
                 if (!selectedEntry) return renderWelcomeView();
                 return (
                     <div className="detail-view">
@@ -572,6 +657,8 @@ function LabNotebookApp() {
                             <h2>{selectedEntry.title}</h2>
                             <div className="detail-buttons">
                                 {selectedEntry.project ? (<span className="detail-project-tag"><FiFolder /> {selectedEntry.project.name}</span>) : (<span className="detail-project-tag uncategorized"><FiInbox /> 미분류</span>)}
+                                <button onClick={handleShowHistory} className="icon-button" title="버전 기록"><FiClock /></button>
+                                <button onClick={() => handleExportMarkdown(selectedEntry.id, selectedEntry.title)} className="icon-button" title="마크다운으로 내보내기"><FiDownload /></button>
                                 <button onClick={handleEditClick} className="icon-button edit-button" title="수정하기"><FiEdit /></button>
                                 <button onClick={handleDelete} className="icon-button delete-button" title="삭제하기"><FiTrash2 /></button>
                             </div>
@@ -599,7 +686,7 @@ function LabNotebookApp() {
                     </div>
                 );
 
-            case 'form':
+            case 'form': // 작성/수정 폼
                 return (
                     <form className="form-view" onSubmit={handleSubmit}>
                         <div className="form-header">
@@ -640,10 +727,11 @@ function LabNotebookApp() {
                         </div>
                     </form>
                 );
-            default:
+            default: // 환영 메시지
                 return renderWelcomeView();
         }
     };
+    // 환영 메시지 뷰
     const renderWelcomeView = () => (
         <div className="welcome-view">
             <FiFileText />
@@ -653,9 +741,11 @@ function LabNotebookApp() {
     );
 
 
+    // [ 7. DndProvider로 앱 감싸기 ]
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="app-container">
+                {/* 헤더 */}
                 <header className="app-header">
                     <FiFileText /> <h1>LabLog</h1>
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -664,10 +754,14 @@ function LabNotebookApp() {
                     </div>
                 </header>
 
+                {/* 메인 바디 (2단) */}
                 <div className="app-body">
+                    {/* 왼쪽 사이드바 */}
                     <nav className="sidebar">
+                        {/* 새 노트 버튼 */}
                         <div className="sidebar-header"> <button className="create-note-btn" onClick={handleCreateNewClick}><FiPlus /> 새 노트 작성</button> </div>
 
+                        {/* 프로젝트 목록 섹션 [ 8. 수정 ] */}
                         <div className="project-list-section collapsible-section">
                             <div className="collapsible-header" onClick={() => setIsProjectsExpanded(!isProjectsExpanded)}>
                                 <div className="header-content"><FiFolder /><h4>프로젝트</h4></div>
@@ -695,6 +789,7 @@ function LabNotebookApp() {
                             )}
                         </div>
 
+                        {/* 템플릿 목록 섹션 */}
                         <div className="template-list-section collapsible-section">
                             <div className="collapsible-header" onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}>
                                 <div className="header-content"><FiClipboard /><h4>템플릿</h4></div>
@@ -714,11 +809,14 @@ function LabNotebookApp() {
                             )}
                         </div>
 
+                        {/* 검색창 */}
                         <div className="sidebar-search"> <FiSearch className="search-icon" /> <input type="text" placeholder="노트 제목 및 내용 검색..." value={searchQuery} onChange={handleSearchChange} /> </div>
 
+                        {/* 노트 목록 [ 9. 수정 ] */}
                         <div className="note-list">
                             {searchQuery && (<div className="search-result-header">'<strong>{debouncedSearchQuery}</strong>' 검색 결과</div>)}
 
+                            {/* [ 10. 도움말 팁 추가 ] */}
                             {!searchQuery && entries.length > 0 && (
                                 <div className="note-list-tip">
                                     <FiInfo />
@@ -739,10 +837,29 @@ function LabNotebookApp() {
                         </div>
                     </nav>
 
-                    <main className="main-content">{renderMainContent()}</main>
+                    {/* 오른쪽 메인 콘텐츠 */}
+                    <main className="main-content">
+                        {showHistory && (
+                            <div className="history-panel-overlay">
+                                <div className="history-panel">
+                                    <h2>버전 기록</h2>
+                                    <button onClick={() => setShowHistory(false)} className="close-history-btn">&times;</button>
+                                    <ul>
+                                        {versionHistory.length > 0 ? versionHistory.map(version => (
+                                            <li key={version.id}>
+                                                <span>{formatDate(version.versionTimestamp)} by {version.researcher || 'Unknown'}</span>
+                                                <button onClick={() => handleRestoreVersion(version.id)} className="restore-btn">복원</button>
+                                            </li>
+                                        )) : <li>기록된 버전이 없습니다.</li>}
+                                    </ul>
+                                </div>
+                            </div>
+                        )}
+                        {renderMainContent()}
+                    </main>
                 </div>
             </div>
-        </DndProvider>
+        </DndProvider> // DndProvider 닫기
     );
 }
 

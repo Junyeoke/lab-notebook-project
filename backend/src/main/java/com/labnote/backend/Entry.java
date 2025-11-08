@@ -58,4 +58,8 @@ public class Entry {
     @JoinColumn(name = "user_id", nullable = false) // 'user_id' 외래 키, null 불가
     @JsonIgnore
     private User user; // 이 노트의 소유자
+
+    @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore // Entry 조회 시 모든 버전을 가져오지 않도록 설정 (필요 시 별도 API로 조회)
+    private List<EntryVersion> versions = new ArrayList<>();
 }

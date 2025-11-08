@@ -45,6 +45,10 @@ dependencies {
 
 	// 3. OAuth2 Client 추가
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	// 4. [추가] HTML -> Markdown 변환 라이브러리
+	implementation 'com.vladsch.flexmark:flexmark-all:0.64.8'
+	implementation 'com.vladsch.flexmark:flexmark-html2md-converter:0.64.8'
 }
 
 tasks.named('test') {
