@@ -993,3 +993,10 @@ body {
   flex-shrink: 0; /* 아이콘이 찌그러지지 않게 */
   font-size: 1rem;
 }
+
+/* ReactQuill Editor Height */
+.form-view .ql-editor {
+  min-height: 300px;
+  resize: vertical;
+  overflow-y: auto;
+}

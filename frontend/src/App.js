@@ -7,6 +7,7 @@ import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import LabNotebookApp from './LabNotebookApp'; // 기존 메인 앱
 import ProtectedRoute from './ProtectedRoute'; // 라우트 가드
+import OAuth2RedirectHandler from './OAuth2RedirectHandler'; // OAuth2 리디렉션 핸들러 추가
 
 // (새로운 App.css는 필요 없음, LabNotebookApp이 App.css를, LoginPage/RegisterPage가 AuthPage.css를 사용)
 
@@ -43,7 +44,10 @@ function App() {
             }
         />
 
-        {/* 4. 그 외 모든 경로는 메인으로 */}
+        {/* 4. OAuth2 리디렉션 처리 */}
+        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+
+        {/* 5. 그 외 모든 경로는 메인으로 */}
         <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>

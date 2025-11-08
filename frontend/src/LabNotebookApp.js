@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import api from './api';
 import Swal from 'sweetalert2';
 import { useAuth } from './AuthContext';
-// CKEditor 임포트
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+// ReactQuill 임포트
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 // DND import
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
@@ -15,7 +15,7 @@ import {
     FiFolder, FiArchive, FiTag, FiChevronsRight, FiInbox, FiLogOut,
     FiSearch, FiClipboard, FiCopy,
     FiChevronDown, FiChevronRight,
-    FiInfo // [ 1. 아이콘 추가 ]
+    FiInfo
 } from 'react-icons/fi';
 import './App.css';
 
@@ -52,6 +52,26 @@ const formatDate = (dateString) => {
         return 'Invalid Date';
     }
 };
+
+// Base64 -> File 객체 변환 헬퍼
+const dataURLtoFile = (dataurl, filename) => {
+    if (!dataurl) return null;
+    try {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, { type: mime });
+    } catch (e) {
+        console.error("dataURLtoFile 변환 오류:", e);
+        return null;
+    }
+}
+
 
 // NoteCard 컴포넌트 (Drag 기능 포함)
 const NoteCard = ({ entry, onClick, isSelected }) => {
@@ -99,8 +119,104 @@ function LabNotebookApp() {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const fileInputRef = useRef(null);
+    const quillRef = useRef(null);
     const [isProjectsExpanded, setIsProjectsExpanded] = useState(true);
     const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(true);
+    const isUploadingRef = useRef(false); // 이미지 업로드 중 무한 루프 방지
+
+    // [수정] Quill 에디터 이미지 핸들러 (툴바용)
+    const imageHandler = () => {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = async () => {
+            const file = input.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('image', file);
+                try {
+                    const response = await api.post('/entries/images', formData);
+                    const imageUrl = response.data.url;
+                    const quill = quillRef.current.getEditor();
+                    const range = quill.getSelection(true);
+                    quill.insertEmbed(range.index, 'image', imageUrl);
+                } catch (error) {
+                    console.error('이미지 업로드 실패:', error);
+                    Swal.fire('오류', '이미지 업로드에 실패했습니다.', 'error');
+                }
+            }
+        };
+    };
+
+    // [수정] Quill 모듈 설정 (핸들러 연결)
+    const modules = useMemo(() => ({
+        toolbar: {
+            container: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+                ['link', 'image'],
+                [{ 'align': [] }, { 'color': [] }, { 'background': [] }],
+                ['clean']
+            ],
+            handlers: {
+                image: imageHandler,
+            },
+        }
+    }), []);
+
+    const formats = [
+        'header', 'bold', 'italic', 'underline', 'strike', 'blockquote',
+        'list', 'bullet', 'indent', 'link', 'image', 'align', 'color', 'background',
+    ];
+
+    // [추가] 붙여넣기 된 Base64 이미지를 처리하는 useEffect
+    useEffect(() => {
+        if (isUploadingRef.current) return; // 업로드 중이면 실행 방지
+
+        const handlePastedImages = async () => {
+            const content = formData.content;
+            const images = Array.from(content.matchAll(/<img src="(data:image\/[^;]+;base64[^"]+)">/g));
+
+            if (images.length === 0) return;
+
+            isUploadingRef.current = true; // 업로드 시작
+            let newContent = content;
+
+            for (const match of images) {
+                const base64Src = match[1];
+                const file = dataURLtoFile(base64Src, `pasted-image-${Date.now()}.png`);
+
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    try {
+                        const response = await api.post('/entries/images', formData);
+                        const newUrl = response.data.url;
+                        newContent = newContent.replace(base64Src, newUrl);
+                    } catch (error) {
+                        console.error('붙여넣은 이미지 업로드 실패:', error);
+                        // 실패 시 해당 이미지는 일단 그대로 둠
+                    }
+                }
+            }
+
+            if (newContent !== content) {
+                setFormData(prev => ({ ...prev, content: newContent }));
+            }
+
+            // 짧은 딜레이 후 업로드 상태 해제
+            setTimeout(() => {
+                isUploadingRef.current = false;
+            }, 100);
+        };
+
+        handlePastedImages();
+
+    }, [formData.content]);
+
 
     // --- 로그아웃 확인 함수 ---
     const handleLogoutConfirm = () => {
@@ -120,7 +236,6 @@ function LabNotebookApp() {
     };
 
     // --- 데이터 로딩 useEffect ---
-    // 프로젝트 및 템플릿 로딩
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -136,7 +251,7 @@ function LabNotebookApp() {
         };
         fetchInitialData();
     }, []);
-    // 노트 로딩
+
     useEffect(() => {
         const fetchEntries = async () => {
             try {
@@ -183,7 +298,6 @@ function LabNotebookApp() {
         if (!noteToMove) return;
         const originalEntries = entries;
 
-        // (UX) Optimistic Update: 현재 뷰에서 노트를 즉시 제거
         setEntries(prevEntries => prevEntries.filter(entry => entry.id !== noteId));
 
         try {
@@ -201,15 +315,13 @@ function LabNotebookApp() {
 
             Swal.fire({ icon: 'success', title: '노트 이동 완료!', showConfirmButton: false, timer: 1000 });
 
-            // 이동한 프로젝트(타겟)를 사이드바에서 선택
             setSelectedProjectId(targetId || 'uncategorized');
-            setSearchQuery(""); // 검색어 초기화
+            setSearchQuery("");
             setCurrentView('welcome');
             setSelectedEntry(null);
 
         } catch (error) {
             console.error("노트 이동 실패:", error);
-            // API 실패 시 UI 롤백
             setEntries(originalEntries);
             Swal.fire('오류', '노트 이동에 실패했습니다.', 'error');
         }
@@ -290,9 +402,11 @@ function LabNotebookApp() {
             setFormData(prevData => ({ ...prevData, [name]: value }));
         }
     };
-    const handleContentChange = (event, editor) => {
-        const data = editor.getData();
-        setFormData(prevData => ({ ...prevData, content: data }));
+    const handleContentChange = (content) => {
+        // 업로드 중일 때는 Quill의 변경을 바로 반영하지 않음
+        if (!isUploadingRef.current) {
+            setFormData(prevData => ({ ...prevData, content: content }));
+        }
     };
     const handleFileChange = (e) => { setSelectedFile(e.target.files[0]); };
     const handleCancelEdit = () => {
@@ -445,7 +559,7 @@ function LabNotebookApp() {
     // --- JSX 렌더링 ---
     const renderMainContent = () => {
         switch (currentView) {
-            case 'read': // 상세 보기
+            case 'read':
                 if (!selectedEntry) return renderWelcomeView();
                 return (
                     <div className="detail-view">
@@ -461,7 +575,7 @@ function LabNotebookApp() {
                             <span><strong>실험자:</strong> {selectedEntry.researcher || '미기입'}</span>
                             <span><strong>최종 수정일:</strong> {formatDate(selectedEntry.updatedAt)}</span>
                         </div>
-                        <div className="detail-content ck-content">
+                        <div className="detail-content">
                             <div dangerouslySetInnerHTML={{ __html: selectedEntry.content || '' }} />
                         </div>
                         {selectedEntry.attachedFilePath && (
@@ -473,7 +587,7 @@ function LabNotebookApp() {
                     </div>
                 );
 
-            case 'form': // 작성/수정 폼
+            case 'form':
                 return (
                     <form className="form-view" onSubmit={handleSubmit}>
                         <div className="form-header">
@@ -495,11 +609,13 @@ function LabNotebookApp() {
                         <div className="form-group"> <label htmlFor="title">제목</label> <input id="title" type="text" name="title" className="form-input" value={formData.title} onChange={handleFormChange} placeholder="실험 제목 (필수)" required /> </div>
                         <div className="form-group">
                             <label htmlFor="content">실험 내용</label>
-                            <CKEditor
-                                editor={ ClassicEditor }
-                                data={formData.content}
-                                onReady={ editor => { /* ... */ } }
-                                onChange={ handleContentChange }
+                            <ReactQuill
+                                ref={quillRef}
+                                theme="snow"
+                                value={formData.content}
+                                onChange={handleContentChange}
+                                modules={modules}
+                                formats={formats}
                             />
                         </div>
                         <div className="form-group"> <label htmlFor="projectId">프로젝트</label> <select id="projectId" name="projectId" className="form-input" value={formData.projectId} onChange={handleFormChange}> <option value="">-- 미분류 --</option> {projects.map(project => (<option key={project.id} value={project.id}>{project.name}</option>))} </select> </div>
@@ -511,11 +627,10 @@ function LabNotebookApp() {
                         </div>
                     </form>
                 );
-            default: // 환영 메시지
+            default:
                 return renderWelcomeView();
         }
     };
-    // 환영 메시지 뷰
     const renderWelcomeView = () => (
         <div className="welcome-view">
             <FiFileText />
@@ -525,11 +640,9 @@ function LabNotebookApp() {
     );
 
 
-    // [ 7. DndProvider로 앱 감싸기 ]
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="app-container">
-                {/* 헤더 */}
                 <header className="app-header">
                     <FiFileText /> <h1>LabLog</h1>
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -538,14 +651,10 @@ function LabNotebookApp() {
                     </div>
                 </header>
 
-                {/* 메인 바디 (2단) */}
                 <div className="app-body">
-                    {/* 왼쪽 사이드바 */}
                     <nav className="sidebar">
-                        {/* 새 노트 버튼 */}
                         <div className="sidebar-header"> <button className="create-note-btn" onClick={handleCreateNewClick}><FiPlus /> 새 노트 작성</button> </div>
 
-                        {/* 프로젝트 목록 섹션 [ 8. 수정 ] */}
                         <div className="project-list-section collapsible-section">
                             <div className="collapsible-header" onClick={() => setIsProjectsExpanded(!isProjectsExpanded)}>
                                 <div className="header-content"><FiFolder /><h4>프로젝트</h4></div>
@@ -573,7 +682,6 @@ function LabNotebookApp() {
                             )}
                         </div>
 
-                        {/* 템플릿 목록 섹션 */}
                         <div className="template-list-section collapsible-section">
                             <div className="collapsible-header" onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}>
                                 <div className="header-content"><FiClipboard /><h4>템플릿</h4></div>
@@ -593,14 +701,11 @@ function LabNotebookApp() {
                             )}
                         </div>
 
-                        {/* 검색창 */}
                         <div className="sidebar-search"> <FiSearch className="search-icon" /> <input type="text" placeholder="노트 제목 및 내용 검색..." value={searchQuery} onChange={handleSearchChange} /> </div>
 
-                        {/* 노트 목록 [ 9. 수정 ] */}
                         <div className="note-list">
                             {searchQuery && (<div className="search-result-header">'<strong>{debouncedSearchQuery}</strong>' 검색 결과</div>)}
 
-                            {/* [ 10. 도움말 팁 추가 ] */}
                             {!searchQuery && entries.length > 0 && (
                                 <div className="note-list-tip">
                                     <FiInfo />
@@ -614,18 +719,17 @@ function LabNotebookApp() {
                                         key={entry.id}
                                         entry={entry}
                                         onClick={() => handleNoteCardClick(entry)}
-                                        isSelected={selectedEntry?.id === entry.id} // 선택 상태 전달
+                                        isSelected={selectedEntry?.id === entry.id}
                                     />
                                 ))
                             ) : ( <p className="note-list-empty">{searchQuery ? '검색 결과가 없습니다.' : '이 프로젝트에는 노트가 없습니다.'}</p> )}
                         </div>
                     </nav>
 
-                    {/* 오른쪽 메인 콘텐츠 */}
                     <main className="main-content">{renderMainContent()}</main>
                 </div>
             </div>
-        </DndProvider> // DndProvider 닫기
+        </DndProvider>
     );
 }
 

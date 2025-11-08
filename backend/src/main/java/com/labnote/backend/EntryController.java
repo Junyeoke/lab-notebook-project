@@ -166,7 +166,46 @@ public class EntryController {
         Entry entry = entryRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new AccessDeniedException("접근 권한이 없거나 존재하지 않는 노트입니다."));
 
-        entryRepository.delete(entry);
-        return ResponseEntity.noContent().build();
-    }
-}
+                entryRepository.delete(entry);
+
+                return ResponseEntity.noContent().build();
+
+            }
+
+        
+
+            // 6. [추가] 텍스트 에디터에서 이미지 업로드 처리
+
+            @PostMapping("/images")
+
+            public ResponseEntity<ImageUploadResponse> uploadImage(@RequestParam("image") MultipartFile image, Principal principal) {
+
+                // 인증된 사용자인지 확인 (업로드 권한 체크)
+
+                getAuthenticatedUser(principal);
+
+        
+
+                // 파일을 저장하고 저장된 파일명을 받음
+
+                String storedFileName = fileStorageService.storeFile(image);
+
+        
+
+                // 클라이언트에게 반환할 전체 URL 구성
+
+                // (주의: 실제 프로덕션에서는 request에서 호스트명을 동적으로 가져오는 것이 좋음)
+
+                String imageUrl = "http://localhost:8080/uploads/" + storedFileName;
+
+        
+
+                // URL을 담은 응답 객체 반환
+
+                return ResponseEntity.ok(new ImageUploadResponse(imageUrl));
+
+            }
+
+        }
+
+        
