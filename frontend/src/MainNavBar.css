@@ -1,0 +1,36 @@
+/* frontend/src/MainNavBar.css */
+.main-nav-bar {
+    background-color: var(--color-dark-gray);
+    width: 60px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: var(--spacing-md);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1001; /* Higher than content panel */
+}
+
+.main-nav-bar .nav-item {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    font-size: 1.8rem;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.main-nav-bar .nav-item:hover {
+    color: var(--color-surface);
+    background-color: var(--color-primary-dark);
+}
+
+.main-nav-bar .nav-item.active {
+    color: var(--color-surface);
+    background-color: var(--color-primary);
+}

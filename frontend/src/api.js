@@ -49,4 +49,10 @@ api.interceptors.response.use(
     }
 );
 
+export const PROJECT_API_URL = '/projects';
+export const TEMPLATE_API_URL = '/templates';
+export const ENTRY_API_URL = '/entries';
+export const UPLOAD_URL = '/entries/upload-image';
+
+
 export default api;
