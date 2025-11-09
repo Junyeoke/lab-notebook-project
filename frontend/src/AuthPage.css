@@ -3,82 +3,119 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background-color: #f9f9f9;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--color-background); /* Use a clean, light background */
+    font-family: var(--font-family-base);
+    color: var(--color-text-dark);
 }
 
 .auth-form {
-    background: #ffffff;
-    padding: 30px 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    background: var(--color-surface); /* White surface for the card */
+    padding: var(--spacing-xl); /* Generous padding */
+    border-radius: var(--border-radius); /* Consistent border-radius */
+    box-shadow: var(--shadow-soft); /* Subtle shadow */
     width: 100%;
-    max-width: 400px;
-    border-top: 4px solid #005a9c;
+    max-width: 420px; /* Optimal width for forms */
+    border: 1px solid var(--color-border); /* Clean border */
+    transition: all 0.2s ease-in-out;
+}
+
+.auth-form:hover {
+    box-shadow: var(--shadow-medium); /* Slightly more pronounced on hover */
 }
 
 .auth-form h2 {
     text-align: center;
-    color: #222;
+    color: var(--color-primary); /* Primary color for the title */
     margin-top: 0;
-    margin-bottom: 25px;
+    margin-bottom: var(--spacing-lg); /* Space below title */
+    font-size: 2rem; /* Clear title size */
+    font-weight: 700;
 }
 
-/* (기존 App.css의 .form-group, .form-input, .form-submit-btn 스타일 재사용) */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-md);
 }
 .form-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: var(--spacing-sm);
     font-weight: 600;
     font-size: 0.9rem;
-    color: #555;
+    color: var(--color-text-medium);
 }
 .form-input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
     font-size: 1rem;
     font-family: inherit;
-    box-sizing: border-box; /* padding 포함 */
+    box-sizing: border-box;
+    transition: all 0.2s ease-in-out;
 }
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light); /* Subtle focus ring */
+}
+
 .form-submit-btn {
     width: 100%;
     border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
-    font-size: 1rem;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    background-color: #005a9c;
-    color: #ffffff;
-    transition: background-color 0.2s;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    transition: all 0.2s ease-in-out;
 }
 .form-submit-btn:hover {
-    background-color: #003e6b;
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px); /* Slight lift */
 }
 
 .auth-switch {
     text-align: center;
-    margin-top: 20px;
+    margin-top: var(--spacing-lg);
     font-size: 0.9rem;
-    color: #555;
+    color: var(--color-text-medium);
 }
 .auth-switch a {
-    color: #005a9c;
+    color: var(--color-primary);
     text-decoration: none;
     font-weight: 600;
+    transition: color 0.2s ease-in-out;
 }
 .auth-switch a:hover {
     text-decoration: underline;
+    color: var(--color-primary-dark);
 }
 
-.social-login {
-    margin-top: 20px;
+.social-login-separator {
+    display: flex;
+    align-items: center;
     text-align: center;
+    margin: var(--spacing-xl) 0; /* Space above and below separator */
+}
+
+.social-login-separator::before,
+.social-login-separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.separator-text {
+    padding: 0 var(--spacing-md);
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    font-weight: 500;
+    background-color: var(--color-surface); /* Match form background */
+}
+
+.social-login-buttons {
+    margin-top: var(--spacing-lg); /* Space between separator and button */
 }
 
 .google-login-btn {
@@ -86,69 +123,49 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 10px 20px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md) var(--spacing-lg); /* More generous padding */
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    background-color: #ffffff;
-    color: #333;
-    transition: background-color 0.2s;
+    background-color: var(--color-surface);
+    color: var(--color-text-dark);
+    transition: all 0.2s ease-in-out;
+    /* margin-top removed as it's now handled by .social-login-buttons */
 }
 
 .google-login-btn:hover {
-
-    background-color: #f5f5f5;
-
+    background-color: var(--color-primary-light); /* Align with theme */
+    box-shadow: var(--shadow-soft);
 }
 
-
+.google-login-btn svg {
+    width: 24px; /* Slightly larger SVG */
+    height: 24px;
+    margin-right: var(--spacing-sm);
+}
 
 /* --- 모바일 반응형 스타일 --- */
-
 @media (max-width: 480px) {
-
     .auth-container {
-
-        /* 모바일에서는 컨테이너가 전체 화면을 차지하도록 */
-
-        background-color: #ffffff;
-
+        background: var(--color-surface); /* Solid background on mobile */
         padding: 0;
-
-        align-items: flex-start; /* 상단에 정렬 */
-
+        align-items: flex-start;
     }
-
-
 
     .auth-form {
-
         width: 100%;
-
         max-width: 100%;
-
-        height: 100%;
-
+        height: 100vh; /* Full height on mobile */
         box-shadow: none;
-
         border-radius: 0;
-
         border-top: none;
-
-        padding: 40px 20px; /* 좌우 패딩 줄이기 */
-
+        padding: var(--spacing-xl) var(--spacing-lg); /* Adjust padding */
     }
-
-
 
     .auth-form h2 {
-
-        margin-top: 20px; /* 상단 여백 추가 */
-
+        margin-top: var(--spacing-md);
         font-size: 1.8rem;
-
     }
-
 }

@@ -50,7 +50,7 @@ function LabNotebookApp() {
     const debouncedSearchQuery = useDebounce(searchQuery, 300);
     const [formData, setFormData] = useState({ title: '', content: '', researcher: '', projectId: '', tags: '' });
     const [selectedFile, setSelectedFile] = useState(null); // State to hold the selected file
-    const [currentView, setCurrentView] = useState('projects');
+    const [currentView, setCurrentView] = useState('home');
     const [selectedEntry, setSelectedEntry] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [versionHistory, setVersionHistory] = useState([]);
@@ -642,7 +642,7 @@ function LabNotebookApp() {
                 </div>
                 <Offcanvas show={showOffcanvas} onHide={handleCloseOffcanvas} placement="start">
                     <Offcanvas.Header closeButton>
-                        <Offcanvas.Title>Lab Notebook</Offcanvas.Title>
+                        <Offcanvas.Title>LogLy</Offcanvas.Title>
                     </Offcanvas.Header>
                     <Offcanvas.Body>
                         <Sidebar currentView={currentView} onNavigate={handleNavigate} handleCreateNewClick={handleCreateNewClick} />
