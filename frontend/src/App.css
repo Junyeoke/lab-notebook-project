@@ -624,8 +624,7 @@ body {
 }
 
 .detail-view, .form-view {
-    max-width: 900px;
-    margin: 0 auto;
+    animation: fadeIn 0.4s var(--transition-medium);
     background-color: var(--color-surface);
     padding: var(--spacing-xl);
     border-radius: var(--border-radius);
@@ -1101,6 +1100,21 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--spacing-lg);
+    /* Add flex properties to center content when empty */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px; /* Ensure it has some height to center within */
+}
+
+.list-empty-message {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    text-align: center;
+    padding: var(--spacing-md);
+    /* Ensure it spans all columns in a grid context */
+    grid-column: 1 / -1;
 }
 
 .template-card {

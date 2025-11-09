@@ -49,7 +49,7 @@ const NoteForm = (props) => {
     return (
         <Form className="form-view" onSubmit={handleSubmit}>
             <div className="form-header">
-                <h2>{isEditing ? '실험 노트 수정' : '새 실험 노트 작성'}</h2>
+                <h2>{isEditing ? '노트 수정' : '새 노트 작성'}</h2>
             </div>
 
             {templates.length > 0 && (
@@ -94,7 +94,7 @@ const NoteForm = (props) => {
 
             <Form.Group className="mb-3">
                 <Form.Label htmlFor="title">제목</Form.Label>
-                <Form.Control id="title" type="text" name="title" value={formData.title} onChange={handleFormChange} placeholder="실험 제목 (필수)" required />
+                <Form.Control id="title" type="text" name="title" value={formData.title} onChange={handleFormChange} placeholder="노트 제목 (필수)" required />
             </Form.Group>
 
             <Form.Group className="mb-3">
@@ -103,7 +103,7 @@ const NoteForm = (props) => {
             </Form.Group>
 
             <Form.Group className="mb-3">
-                <Form.Label>실험 내용</Form.Label>
+                <Form.Label>내용</Form.Label>
                 <ReactQuill
                     ref={quillRef}
                     theme="snow"

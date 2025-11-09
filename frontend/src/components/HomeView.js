@@ -23,7 +23,7 @@ const HomeView = ({
         <div className="home-view-dashboard">
             <header className="dashboard-header">
                 <h1>안녕하세요, {user?.username}님!</h1>
-                <p>LabLog에 오신 것을 환영합니다. 오늘 어떤 연구를 기록해볼까요?</p>
+                <p>Logly에 오신 것을 환영합니다. 오늘 어떤 내용을 기록해볼까요?</p>
             </header>
 
             <div className="dashboard-grid">

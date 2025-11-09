@@ -24,9 +24,20 @@ const Header = ({ user, onGoHome, onShowOffcanvas, onLogout, onNavigateToMyInfo 
                 <Button variant="outline-secondary" onClick={onShowOffcanvas} className="d-lg-none">
                     <FiMenu />
                 </Button>
-                <Navbar.Brand onClick={onGoHome} style={{ cursor: 'pointer' }} className="d-flex align-items-center gap-2">
-                    <FiFileText />
-                    <h1 className="mb-0 h5">LabLog</h1>
+                <Navbar.Brand
+                    onClick={onGoHome}
+                    style={{cursor: 'pointer'}}
+                    className="d-flex align-items-center gap-2"
+                >
+                    <img
+                        src="/logo.png"
+                        alt="로고"
+                        style={{
+                            height: "42px",   // 딱 보기 좋게!
+                            width: "auto",    // 비율 자동 유지
+                            display: "block",
+                        }}
+                    />
                 </Navbar.Brand>
                 <div ref={userMenuRef} className="user-menu-container">
                     <div className="user-menu-trigger" onClick={() => setShowUserPopover(!showUserPopover)}>

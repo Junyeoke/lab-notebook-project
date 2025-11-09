@@ -49,6 +49,7 @@ function LabNotebookApp() {
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearchQuery = useDebounce(searchQuery, 300);
     const [formData, setFormData] = useState({ title: '', content: '', researcher: '', projectId: '', tags: '' });
+    const [selectedFile, setSelectedFile] = useState(null); // State to hold the selected file
     const [currentView, setCurrentView] = useState('projects');
     const [selectedEntry, setSelectedEntry] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -210,6 +211,7 @@ function LabNotebookApp() {
 
     const resetForm = (keepView = false) => {
         setFormData({ title: '', content: '', researcher: '', projectId: '', tags: '' });
+        setSelectedFile(null); // Clear selected file
         if (fileInputRef.current) fileInputRef.current.value = null;
         setIsEditing(false);
         setShowHistory(false);
@@ -327,6 +329,10 @@ function LabNotebookApp() {
         }
     }, []);
 
+    const handleFileChange = useCallback((e) => {
+        setSelectedFile(e.target.files[0]);
+    }, []);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const isContentEmpty = !formData.content || formData.content.trim() === '';
@@ -339,6 +345,9 @@ function LabNotebookApp() {
         const formPayload = new FormData();
         formPayload.append("entry", JSON.stringify(entryData));
         if (projectId) formPayload.append("projectId", projectId);
+        if (selectedFile) {
+            formPayload.append("file", selectedFile);
+        }
         try {
             let response;
             if (isEditing) {
@@ -586,6 +595,7 @@ function LabNotebookApp() {
                     modules={modules}
                     formats={formats}
                     fileInputRef={fileInputRef}
+                    handleFileChange={handleFileChange} // Pass the new handler
                 />;
             case 'templates':
                 return <TemplateView templates={templates} onSaveTemplate={handleSaveTemplate} onDeleteTemplate={handleDeleteTemplate} />;

@@ -27,7 +27,7 @@ const NoteCard = ({ entry, onClick, isSelected }) => {
             onClick={onClick}
         >
             <h3>{entry.title}</h3>
-            <p dangerouslySetInnerHTML={{ __html: summary }} />
+            {/*<p dangerouslySetInnerHTML={{ __html: summary }} />*/}
             <small>{formatDate(entry.updatedAt)}</small>
         </div>
     );
