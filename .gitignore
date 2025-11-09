@@ -31,3 +31,7 @@
 
 # (만약 application.properties를 제외하고 싶다면 아래 파일 경로의 주석을 해제)
 # /backend/src/main/resources/application.properties
+
+# 6. Uploads directories
+/uploads/
+/backend/uploads/
