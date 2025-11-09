@@ -120,17 +120,9 @@ export const AuthProvider = ({ children }) => {
         if (storedToken) {
             try {
                 const decodedUser = jwtDecode(storedToken);
-                // 현재 상태와 비교해서 불필요한 setState 방지
-                setToken((prev) => {
-                    if (prev === storedToken) return prev;
-                    return storedToken;
-                });
-                setUser((prevUser) => {
-                    const username = decodedUser?.sub || null;
-                    if (!username) return prevUser;
-                    if (prevUser && prevUser.username === username) return prevUser;
-                    return { username };
-                });
+                const { sub: username, picture, email, provider } = decodedUser;
+                setToken(storedToken);
+                setUser({ username, picture, email, provider });
             } catch (error) {
                 localStorage.removeItem('token');
                 setToken(null);
@@ -140,7 +132,6 @@ export const AuthProvider = ({ children }) => {
             setToken(null);
             setUser(null);
         }
-        // 빈 deps로 한 번 실행 (앱 초기화 시)
     }, []);
 
     // 로그인 (서버)
@@ -149,21 +140,14 @@ export const AuthProvider = ({ children }) => {
             const response = await api.post('/auth/login', { username, password });
             const newToken = response.data.token;
             if (!newToken) throw new Error('No token returned from server');
+            
             localStorage.setItem('token', newToken);
-            let decodedUser = null;
-            try {
-                decodedUser = jwtDecode(newToken);
-            } catch (e) {
-                console.error('Invalid JWT from login:', e);
-            }
-            // setToken/setUser은 필요할 때만
-            setToken((prev) => (prev === newToken ? prev : newToken));
-            setUser((prevUser) => {
-                const usernameFromToken = decodedUser?.sub || null;
-                if (!usernameFromToken) return prevUser;
-                if (prevUser && prevUser.username === usernameFromToken) return prevUser;
-                return { username: usernameFromToken };
-            });
+            const decodedUser = jwtDecode(newToken);
+            const { sub: decodedUsername, picture, email, provider } = decodedUser;
+
+            setToken(newToken);
+            setUser({ username: decodedUsername, picture, email, provider });
+
             return { success: true };
         } catch (error) {
             console.error('로그인 실패:', error);
@@ -174,25 +158,18 @@ export const AuthProvider = ({ children }) => {
 
     // 로그인 (토큰으로)
     const loginWithToken = useCallback((newToken) => {
-        if (!newToken) return;
-        const currentToken = localStorage.getItem('token') || token;
-        // 동일 토큰이면 아무 것도 안 함 (불필요한 상태 변경 방지)
-        if (currentToken === newToken && token === newToken) {
-            // 이미 같은 토큰이 있고 user도 동일하다면 무시
+        if (!newToken || newToken === token) {
             return;
         }
-
+        
         localStorage.setItem('token', newToken);
         try {
             const decodedUser = jwtDecode(newToken);
-            const usernameFromToken = decodedUser?.sub || null;
-            // token/state 변경도 최소화
-            setToken((prev) => (prev === newToken ? prev : newToken));
-            setUser((prevUser) => {
-                if (!usernameFromToken) return prevUser;
-                if (prevUser && prevUser.username === usernameFromToken) return prevUser;
-                return { username: usernameFromToken };
-            });
+            const { sub: username, picture, email, provider } = decodedUser;
+            
+            setToken(newToken);
+            setUser({ username, picture, email, provider });
+
         } catch (error) {
             console.error('Invalid token:', error);
             localStorage.removeItem('token');

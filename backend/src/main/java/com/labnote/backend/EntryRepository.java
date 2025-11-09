@@ -20,4 +20,6 @@ public interface EntryRepository extends JpaRepository<Entry, Long> {
             "e.content LIKE CONCAT('%', :query, '%') OR " +
             "LOWER(t) LIKE LOWER(CONCAT('%', :query, '%')))")
     List<Entry> searchByUser(@Param("user") User user, @Param("query") String query);
+
+    void deleteAllByUser(User user);
 }

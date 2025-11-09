@@ -1,0 +1,199 @@
+/* HomeView.css */
+
+.home-view-dashboard {
+    padding: 2rem;
+    height: 100%;
+    overflow-y: auto;
+    background-color: var(--background-color-secondary);
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-color-primary);
+}
+
+.dashboard-header p {
+    font-size: 1rem;
+    color: var(--text-color-secondary);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.dashboard-card {
+    background-color: var(--background-color-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.07);
+}
+
+.dashboard-card h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-color-primary);
+}
+
+/* Stat Cards */
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+}
+
+.stat-info h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-color-primary);
+}
+
+.stat-info p {
+    margin: 0;
+    color: var(--text-color-secondary);
+}
+
+/* Quick Actions Card */
+.quick-actions-card {
+    grid-column: span 2; /* Make it wider */
+}
+
+.quick-actions-card .action-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background-color: var(--primary-color-light);
+    color: var(--primary-color);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 0.75rem;
+}
+
+.quick-actions-card .action-button:last-child {
+    margin-bottom: 0;
+}
+
+.quick-actions-card .action-button:hover {
+    background-color: var(--primary-color-dark);
+    color: #fff;
+}
+
+/* List Cards (Projects & Recent Notes) */
+.list-card {
+    grid-column: span 2; /* Make it wider */
+}
+
+.list-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-card li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.list-card li:hover {
+    background-color: var(--background-color-secondary);
+}
+
+.list-card li + li {
+    border-top: 1px solid var(--border-color);
+}
+
+.list-card .item-icon {
+    margin-right: 1rem;
+    color: var(--text-color-secondary);
+}
+
+.list-card .note-info, .list-card .project-info {
+    display: flex;
+    align-items: center;
+}
+
+.list-card .project-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-color-secondary);
+}
+
+.list-card .note-count {
+    font-size: 0.875rem;
+    background-color: var(--background-color-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+}
+
+.list-card small {
+    color: var(--text-color-secondary);
+}
+
+.empty-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-color-secondary);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .home-view-dashboard {
+        padding: 1rem;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .quick-actions-card,
+    .list-card {
+        grid-column: span 1;
+    }
+
+    .stat-card {
+        gap: 1rem;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+    }
+
+    .stat-info h2 {
+        font-size: 1.5rem;
+    }
+}

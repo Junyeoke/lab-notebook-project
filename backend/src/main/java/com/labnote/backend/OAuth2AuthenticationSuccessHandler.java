@@ -32,17 +32,20 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        // [수정] DB에 사용자가 없으면 새로 저장
-        userRepository.findByUsername(email).orElseGet(() -> {
-            User newUser = new User();
-            newUser.setUsername(email);
-            // 소셜 로그인이므로 실제 비밀번호는 필요 없지만, not-null 제약조건 때문에 임의의 값 저장
-            newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-            return userRepository.save(newUser);
-        });
+        User user = userRepository.findByUsername(email)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setUsername(email);
+                    newUser.setEmail(email);
+                    newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString())); // 임의의 비밀번호
+                    String provider = "google"; // 이 부분은 userRequest에서 가져오는 것이 더 정확할 수 있습니다.
+                    newUser.setProvider(provider);
+                    String pictureUrl = oAuth2User.getAttribute("picture");
+                    newUser.setPicture(pictureUrl);
+                    return userRepository.save(newUser);
+                });
 
-
-        String token = jwtTokenUtil.generateToken(new org.springframework.security.core.userdetails.User(email, "", new java.util.ArrayList<>()));
+        String token = jwtTokenUtil.generateToken(user);
 
         String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth2/redirect")
                 .queryParam("token", token)

@@ -41,7 +41,8 @@ public class Project {
 
     @OneToMany(
             mappedBy = "project", // 'Entry' 엔티티의 'project' 필드와 매핑됨
-            cascade = CascadeType.ALL, // 프로젝트가 삭제/저장될 때 관련 Entry도... (이건 위험할 수 있음. 수정!)
+            cascade = CascadeType.ALL, // 프로젝트가 삭제/저장될 때 관련 Entry도...
+            orphanRemoval = true, // [추가] 고아 객체 제거
             fetch = FetchType.LAZY // EAGER(즉시로딩) 대신 LAZY(지연로딩) 사용
     )
     @JsonIgnore // [중요!] API 응답 시 이 List는 제외 (무한 루프 방지)

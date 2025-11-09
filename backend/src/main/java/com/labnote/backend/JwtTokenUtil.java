@@ -65,6 +65,28 @@ public class JwtTokenUtil {
                 .compact();
     }
 
+    // [추가] User 객체를 기반으로 JWT 토큰 생성 (커스텀 클레임 추가용)
+    public String generateToken(User user) {
+        Claims claims = Jwts.claims().setSubject(user.getUsername());
+        claims.put("picture", user.getPicture());
+        claims.put("email", user.getEmail());
+        claims.put("provider", user.getProvider());
+        // 다른 필요한 정보도 claims.put() 으로 추가 가능
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
+                .signWith(getKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    // [추가] 토큰에서 사진 정보 추출
+    public String getPictureFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("picture", String.class));
+    }
+
+
     // 9. 토큰 유효성 검사 (사용자 이름이 같고, 만료되지 않았는지)
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
