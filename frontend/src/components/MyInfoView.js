@@ -81,8 +81,13 @@ const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                disabled={!isEditing}
+                                disabled={!isEditing || user.provider === 'google'}
                             />
+                            {user.provider === 'google' && (
+                                <Form.Text className="text-muted">
+                                    Google 로그인 사용자는 이름을 변경할 수 없습니다.
+                                </Form.Text>
+                            )}
                         </Form.Group>
 
                         {isEditing ? (
@@ -99,9 +104,11 @@ const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
                                 </Button>
                             </div>
                         ) : (
-                            <Button variant="outline-primary" onClick={() => setIsEditing(true)}>
-                                이름 수정
-                            </Button>
+                            ! (user.provider === 'google') && (
+                                <Button variant="outline-primary" onClick={() => setIsEditing(true)}>
+                                    이름 수정
+                                </Button>
+                            )
                         )}
                     </Form>
                     <hr />

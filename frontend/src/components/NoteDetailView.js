@@ -23,7 +23,7 @@ const NoteDetailView = ({ selectedEntry, handleShowHistory, handleExportMarkdown
                 </div>
             </div>
             <div className="detail-meta">
-                <span><strong>실험자:</strong> {selectedEntry.researcher || '미기입'}</span>
+                <span><strong>작성자:</strong> {selectedEntry.researcher || '미기입'}</span>
                 <span><strong>최종 수정일:</strong> {formatDate(selectedEntry.updatedAt)}</span>
             </div>
             {selectedEntry.tags && selectedEntry.tags.length > 0 && (

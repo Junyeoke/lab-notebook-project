@@ -77,7 +77,7 @@ const NoteForm = (props) => {
             <Row>
                 <Col md={6}>
                     <Form.Group className="mb-3">
-                        <Form.Label htmlFor="researcher">실험자</Form.Label>
+                        <Form.Label htmlFor="researcher">작성자</Form.Label>
                         <Form.Control id="researcher" type="text" name="researcher" value={formData.researcher} onChange={handleFormChange} placeholder="이름 (예: 홍길동)" />
                     </Form.Group>
                 </Col>
