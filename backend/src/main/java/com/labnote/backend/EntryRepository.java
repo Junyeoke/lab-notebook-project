@@ -9,7 +9,8 @@ import java.util.Optional; // Optional 임포트 확인 (findByIdAndUser 때문�
 public interface EntryRepository extends JpaRepository<Entry, Long> {
 
     // (기존 메소드들 - findByProjectIdAndUser, findByProjectIsNullAndUser, findByUser, findByIdAndUser)
-    List<Entry> findByProjectIdAndUser(Long projectId, User user);
+    // [수정] 특정 프로젝트 ID에 속한 모든 노트를 찾는 메소드 (작성자 무관)
+    List<Entry> findByProjectId(Long projectId);
     List<Entry> findByProjectIsNullAndUser(User user);
     List<Entry> findByUser(User user);
     Optional<Entry> findByIdAndUser(Long id, User user);

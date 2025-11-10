@@ -1,0 +1,107 @@
+.collaborator-manager {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+
+.collaborator-manager h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+}
+
+.collaborator-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.collaborator-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--color-background);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.collaborator-item.owner {
+    font-weight: bold;
+    color: var(--color-primary);
+}
+
+.collaborator-item .owner-icon {
+    color: #f0ad4e; /* A gold-like color for the crown */
+}
+
+.collaborator-item .remove-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.collaborator-item .remove-btn:hover {
+    background-color: var(--color-danger-background);
+    color: var(--color-danger);
+}
+
+
+.add-collaborator-form h5 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.add-collaborator-form .input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.add-collaborator-form input {
+    flex-grow: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+}
+
+.add-collaborator-form button {
+    padding: 0.5rem 1rem;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-collaborator-form button:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.add-collaborator-form button:disabled {
+    background-color: var(--color-background-light);
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: var(--color-danger);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}

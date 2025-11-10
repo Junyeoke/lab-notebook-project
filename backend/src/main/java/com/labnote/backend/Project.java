@@ -1,6 +1,7 @@
 package com.labnote.backend;
 
 import com.fasterxml.jackson.annotation.JsonIgnore; // 직렬화 루프 방지
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "projects")
@@ -50,9 +53,19 @@ public class Project {
 
     // (생성자 등은 @NoArgsConstructor, @Setter로 처리)
 
-    // --- [추가된 부분] ---
-    @ManyToOne(fetch = FetchType.EAGER) // Project 조회 시 User 정보도 '즉시' 가져옴
-    @JoinColumn(name = "user_id", nullable = false) // 'user_id' 외래 키, null 불가
-    @JsonIgnore // Entry -> Project -> User 무한 루프 방지
-    private User user; // 이 프로젝트의 소유자
+    // --- [수정된 부분] 소유자 관계 ---
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "owner_id", nullable = false) // 'user_id' -> 'owner_id'
+    @JsonIgnoreProperties({"projects", "sharedProjects", "templates"}) // 무한 루프 방지
+    private User owner; // 이 프로젝트의 소유자 (user -> owner)
+
+    // --- [추가된 부분] 협업자 관계 ---
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "project_collaborators",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @JsonIgnoreProperties({"projects", "sharedProjects", "templates"}) // 무한 루프 방지
+    private Set<User> collaborators = new HashSet<>();
 }

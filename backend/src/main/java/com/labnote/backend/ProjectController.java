@@ -1,78 +1,103 @@
 package com.labnote.backend;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication; // [추가]
-import org.springframework.security.core.userdetails.UsernameNotFoundException; // [추가]
-import java.security.Principal; // [추가]
-import java.nio.file.AccessDeniedException; // [추가]
+import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.file.AccessDeniedException;
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/projects")
-// @CrossOrigin(origins = "http://localhost:3000")
 public class ProjectController {
 
     @Autowired
     private ProjectRepository projectRepository;
 
     @Autowired
-    private EntryRepository entryRepository; // Entry의 project 링크를 끊기 위해
+    private EntryRepository entryRepository;
 
     @Autowired
-    private UserRepository userRepository; // [추가]
+    private UserRepository userRepository;
 
-    // --- [추가] 현재 로그인한 User 객체를 가져오는 헬퍼 메소드 ---
-    private com.labnote.backend.User getAuthenticatedUser(Principal principal) {
+    private User getAuthenticatedUser(Principal principal) {
         String username = principal.getName();
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
-    // 1. (R) 모든 프로젝트 조회 [수정]
     @GetMapping
-    public List<Project> getAllProjects(Principal principal) { // [수정] Principal 추가
-        // [수정] DB의 모든 Project가 아닌, "로그인한 유저"의 Project만 반환
-        com.labnote.backend.User user = getAuthenticatedUser(principal);
-        return projectRepository.findByUser(user);
+    public List<Project> getAllProjects(Principal principal) {
+        User user = getAuthenticatedUser(principal);
+        // [수정] 소유하거나 협업중인 모든 프로젝트를 반환하도록 변경
+        return projectRepository.findOwnedAndSharedProjects(user);
     }
 
-    // 2. (C) 새 프로젝트 생성 [수정]
     @PostMapping
-    public Project createProject(@RequestBody Project project, Principal principal) { // [수정]
-        com.labnote.backend.User user = getAuthenticatedUser(principal);
-
-        // [수정] 프로젝트에 소유자(User) 설정
-        project.setUser(user);
-
+    public Project createProject(@RequestBody Project project, Principal principal) {
+        User user = getAuthenticatedUser(principal);
+        // 'owner'로 설정
+        project.setOwner(user);
         return projectRepository.save(project);
     }
 
-    // 3. (D) 프로젝트 삭제 [수정]
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProject(@PathVariable Long id, Principal principal) throws AccessDeniedException { // [수정]
-        com.labnote.backend.User user = getAuthenticatedUser(principal);
+    public ResponseEntity<Void> deleteProject(@PathVariable Long id, Principal principal) throws AccessDeniedException {
+        User user = getAuthenticatedUser(principal);
+        // 'owner'로 변경된 메소드 사용
+        Project project = projectRepository.findByIdAndOwner(id, user)
+                .orElseThrow(() -> new AccessDeniedException("Access denied or project not found"));
 
-        // [수정] ID와 User로 프로젝트를 찾아 소유권 확인
-        Project project = projectRepository.findByIdAndUser(id, user)
-                .orElse(null);
-
-        if (project == null) {
-            // 프로젝트가 없거나, 내 소유가 아님
-            throw new AccessDeniedException("접근 권한이 없거나 존재하지 않는 프로젝트입니다.");
-        }
-
-        // [수정] Entry들의 프로젝트 링크 해제 (findByProjectId -> findByProjectIdAndProjectUser)
-        List<Entry> entriesToUpdate = entryRepository.findByProjectIdAndUser(id, user);
+        // Entry들의 프로젝트 링크 해제 로직은 EntryController로 이동하거나 유지할 수 있음
+        // 여기서는 유지하겠습니다.
+        // [수정] 프로젝트에 속한 모든 노트를 찾아 링크를 해제합니다 (소유자 무관).
+        List<Entry> entriesToUpdate = entryRepository.findByProjectId(id);
         for (Entry entry : entriesToUpdate) {
             entry.setProject(null);
             entryRepository.save(entry);
         }
 
         projectRepository.delete(project);
-
         return ResponseEntity.noContent().build();
+    }
+
+    // --- [추가] 협업자 추가 API ---
+    @PostMapping("/{projectId}/collaborators")
+    public ResponseEntity<Project> addCollaborator(
+            @PathVariable Long projectId,
+            @RequestBody Map<String, String> payload,
+            Principal principal) throws AccessDeniedException {
+
+        User owner = getAuthenticatedUser(principal);
+        String collaboratorEmail = payload.get("email");
+
+        if (collaboratorEmail == null || collaboratorEmail.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email must be provided");
+        }
+
+        // 1. 프로젝트를 찾고, 요청자가 소유자인지 확인
+        Project project = projectRepository.findByIdAndOwner(projectId, owner)
+                .orElseThrow(() -> new AccessDeniedException("You are not the owner of this project or it does not exist."));
+
+        // 2. 이메일로 협업할 사용자를 찾음
+        User collaborator = userRepository.findByEmail(collaboratorEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with email " + collaboratorEmail + " not found."));
+
+        // 3. 자기 자신을 추가하는 경우 방지
+        if(owner.getId().equals(collaborator.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot add yourself as a collaborator.");
+        }
+
+        // 4. 협업자 목록에 추가하고 저장
+        project.getCollaborators().add(collaborator);
+        Project savedProject = projectRepository.save(project);
+
+        return ResponseEntity.ok(savedProject);
     }
 }

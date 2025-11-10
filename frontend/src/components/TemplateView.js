@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Button, Modal, Form } from 'react-bootstrap';
 import { FiPlus, FiEdit, FiTrash2, FiFileText } from 'react-icons/fi';
 import Swal from 'sweetalert2';
+import ReactQuill from 'react-quill-new'; // [추가]
 
-const TemplateView = ({ templates, onSaveTemplate, onDeleteTemplate }) => {
+const TemplateView = ({ templates, onSaveTemplate, onDeleteTemplate, modules, formats }) => { // [수정] props 추가
     const [showModal, setShowModal] = useState(false);
     const [currentTemplate, setCurrentTemplate] = useState(null);
     const [templateName, setTemplateName] = useState('');
@@ -54,17 +55,22 @@ const TemplateView = ({ templates, onSaveTemplate, onDeleteTemplate }) => {
             </div>
             <p>자주 사용하는 노트 양식을 템플릿으로 저장하고 관리하세요.</p>
 
-            <div className="template-list">
+            <div className="template-list-container">
                 {templates.length > 0 ? (
                     templates.map(template => (
-                        <div key={template.id} className="template-card" onClick={() => handleShowModal(template)}>
-                            <div className="template-card-icon"><FiFileText /></div>
-                            <div className="template-card-body">
-                                <h5>{template.name}</h5>
-                                <p>{template.content.replace(/<[^>]+>/g, '').substring(0, 100)}...</p>
+                        <div key={template.id} className="template-item-card">
+                            <div className="template-item-content" onClick={() => handleShowModal(template)}>
+                                <div className="template-item-icon"><FiFileText /></div>
+                                <div className="template-item-details">
+                                    <h5>{template.name}</h5>
+                                    <p>{template.content.replace(/<[^>]+>/g, '').substring(0, 100) || '내용 없음'}{template.content.length > 100 ? '...' : ''}</p>
+                                </div>
                             </div>
-                            <div className="template-card-actions">
-                                <Button variant="outline-danger" size="sm" onClick={(e) => handleDelete(e, template)}>
+                            <div className="template-item-actions">
+                                <Button variant="light" size="sm" onClick={() => handleShowModal(template)} title="수정">
+                                    <FiEdit />
+                                </Button>
+                                <Button variant="light" size="sm" onClick={(e) => handleDelete(e, template)} title="삭제">
                                     <FiTrash2 />
                                 </Button>
                             </div>
@@ -95,16 +101,16 @@ const TemplateView = ({ templates, onSaveTemplate, onDeleteTemplate }) => {
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>템플릿 내용</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={10}
-                                placeholder="템플릿 내용을 입력하세요..."
+                            {/* [수정] ReactQuill 에디터로 교체 */}
+                            <ReactQuill
+                                theme="snow"
                                 value={templateContent}
-                                onChange={(e) => setTemplateContent(e.target.value)}
+                                onChange={setTemplateContent}
+                                modules={modules}
+                                formats={formats}
+                                placeholder="템플릿 내용을 입력하세요..."
+                                style={{ height: '250px', marginBottom: '4rem' }}
                             />
-                             <Form.Text className="text-muted">
-                                현재 템플릿은 일반 텍스트만 지원합니다. (HTML 미지원)
-                            </Form.Text>
                         </Form.Group>
                     </Form>
                 </Modal.Body>

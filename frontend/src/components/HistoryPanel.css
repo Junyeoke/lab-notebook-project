@@ -1,0 +1,195 @@
+.history-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Above most other content */
+}
+
+.history-panel {
+    background-color: var(--color-surface);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+    color: var(--color-text-dark);
+}
+
+.history-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1rem;
+}
+
+.history-panel-header h2 {
+    margin: 0;
+    color: var(--color-primary);
+}
+
+.close-history-btn, .back-to-list-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-text-medium);
+    transition: color 0.2s;
+}
+
+.close-history-btn:hover, .back-to-list-btn:hover {
+    color: var(--color-primary-dark);
+}
+
+.history-panel ul {
+    list-style: none;
+    padding: 0;
+}
+
+.history-panel li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.history-panel li:last-child {
+    border-bottom: none;
+}
+
+.history-panel li span {
+    font-size: 0.95rem;
+}
+
+.compare-btn {
+    background-color: var(--color-secondary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.compare-btn:hover {
+    background-color: var(--color-primary-dark); /* secondary-dark가 없으므로 primary-dark로 대체 */
+}
+
+.diff-viewer-container {
+    margin-top: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    overflow: hidden; /* Ensures diff viewer content stays within bounds */
+}
+
+.restore-btn {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 1.5rem;
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.restore-btn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+/* [추가] 변경사항 요약 스타일 */
+.diff-summary {
+    background-color: var(--color-background);
+    padding: 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    border: 1px solid var(--color-border);
+}
+
+.diff-summary h4 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.diff-summary .summary-item {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.diff-summary .summary-item strong {
+    margin-right: 0.5rem;
+}
+
+.diff-summary .old-value {
+    color: var(--color-danger);
+    text-decoration: line-through;
+}
+
+.diff-summary .new-value {
+    color: var(--color-success);
+    font-weight: bold;
+}
+
+
+/* --- Diff Viewer Titles Styling --- */
+.diff-title-old {
+    color: var(--color-danger); /* Reddish for old version */
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    background-color: #fef2f2; /* Light red background */
+}
+
+.diff-title-current {
+    color: var(--color-success); /* Greenish for current version */
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    background-color: #f0fdf4; /* Light green background */
+}
+
+/* ReactDiffViewer overrides for better theme integration */
+.diff-viewer-container .diff-viewer {
+    background-color: var(--color-background);
+    color: var(--color-text-dark);
+}
+
+.diff-viewer-container .diff-viewer-line {
+    background-color: var(--color-background);
+}
+
+.diff-viewer-container .diff-viewer-line-number {
+    background-color: var(--color-surface);
+    color: var(--color-text-medium);
+}
+
+.diff-viewer-container .diff-viewer-line-content {
+    color: var(--color-text-dark);
+}
+
+.diff-viewer-container .diff-viewer-line-content.diff-viewer-line-content-added {
+    background-color: #dcfce7; /* Light green */
+}
+
+.diff-viewer-container .diff-viewer-line-content.diff-viewer-line-content-removed {
+    background-color: #fee2e2; /* Light red */
+}
+
+.diff-viewer-container .diff-viewer-line-content.diff-viewer-line-content-changed {
+    background-color: #fef3c7; /* Light yellow */
+}

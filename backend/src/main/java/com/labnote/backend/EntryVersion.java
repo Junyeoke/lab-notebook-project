@@ -1,5 +1,6 @@
 package com.labnote.backend;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,4 +43,10 @@ public class EntryVersion {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime versionTimestamp;
+
+    // [추가] 수정한 사용자 정보
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "modified_by_user_id")
+    @JsonIgnoreProperties({"projects", "sharedProjects", "templates"})
+    private User modifiedBy;
 }

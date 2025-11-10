@@ -49,10 +49,23 @@ api.interceptors.response.use(
     }
 );
 
+// ... (기존 코드)
+
 export const PROJECT_API_URL = '/projects';
 export const TEMPLATE_API_URL = '/templates';
 export const ENTRY_API_URL = '/entries';
 export const UPLOAD_URL = '/entries/upload-image';
+
+// --- 협업 기능 API ---
+/**
+ * 프로젝트에 협업자를 추가합니다.
+ * @param {number} projectId - 프로젝트 ID
+ * @param {string} email - 추가할 사용자의 이메일
+ * @returns {Promise<object>} - 업데이트된 프로젝트 객체
+ */
+export const addCollaborator = (projectId, email) => {
+    return api.post(`${PROJECT_API_URL}/${projectId}/collaborators`, { email });
+};
 
 
 export default api;

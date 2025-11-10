@@ -3,10 +3,22 @@ import {
     FiFolder, FiInbox, FiClock, FiDownload, FiEdit, FiTrash2, FiFile
 } from 'react-icons/fi';
 import { formatDate, isImageFile, getOriginalFileName } from '../utils';
+import CollaboratorManager from './CollaboratorManager'; // [추가]
+import './CollaboratorManager.css'; // [추가]
 
 const UPLOAD_URL = 'http://localhost:8080/uploads/';
 
-const NoteDetailView = ({ selectedEntry, handleShowHistory, handleExportMarkdown, handleEditClick, handleDelete }) => {
+const NoteDetailView = ({ 
+    selectedEntry, 
+    handleShowHistory, 
+    handleExportMarkdown, 
+    handleEditClick, 
+    handleDelete,
+    // [추가] 협업자 관리를 위한 props
+    onAddCollaborator,
+    onRemoveCollaborator,
+    currentUsername
+}) => {
     if (!selectedEntry) {
         return null; // Or a placeholder
     }
@@ -41,6 +53,16 @@ const NoteDetailView = ({ selectedEntry, handleShowHistory, handleExportMarkdown
                     <h4>첨부 파일</h4>
                     {isImageFile(selectedEntry.attachedFilePath) ? (<img src={UPLOAD_URL + selectedEntry.attachedFilePath} alt="첨부 이미지" className="attached-image" />) : (<div className="attached-document"><a href={UPLOAD_URL + selectedEntry.attachedFilePath} target="_blank" rel="noopener noreferrer" download><FiFile /> {getOriginalFileName(selectedEntry.attachedFilePath)}</a></div>)}
                 </div>
+            )}
+
+            {/* --- [추가] 협업자 관리 섹션 --- */}
+            {selectedEntry.project && (
+                <CollaboratorManager 
+                    project={selectedEntry.project}
+                    onAddCollaborator={onAddCollaborator}
+                    onRemoveCollaborator={onRemoveCollaborator}
+                    currentUsername={currentUsername}
+                />
             )}
         </div>
     );

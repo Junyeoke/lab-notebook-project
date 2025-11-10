@@ -62,8 +62,8 @@ public class EntryController {
             entry.setUser(user);
     
             if (projectId != null) {
-                // [수정] 내가 소유한 프로젝트가 맞는지 확인
-                Project project = projectRepository.findByIdAndUser(projectId, user)
+                // [수정] 내가 소유하거나 협업중인 프로젝트가 맞는지 확인
+                Project project = projectRepository.findByIdAndOwnerOrCollaboratorsContains(projectId, user, user)
                         .orElseThrow(() -> new AccessDeniedException("접근 권한이 없는 프로젝트입니다."));
                 entry.setProject(project);
             } else {
@@ -103,10 +103,18 @@ public class EntryController {
             if (!"all".equals(projectId)) {
                 try {
                     Long pid = Long.parseLong(projectId);
-                    return entryRepository.findByProjectIdAndUser(pid, user);
+                    // [핵심 수정] 프로젝트 접근 권한 확인
+                    projectRepository.findByIdAndOwnerOrCollaboratorsContains(pid, user, user)
+                            .orElseThrow(() -> new AccessDeniedException("접근 권한이 없는 프로젝트입니다."));
+                    // 권한이 있으면 해당 프로젝트의 모든 노트를 반환
+                    return entryRepository.findByProjectId(pid);
                 } catch (NumberFormatException e) {
                     // projectId가 숫자가 아니면 '전체'로 간주
                     return entryRepository.findByUser(user);
+                } catch (AccessDeniedException e) {
+                    // 권한 없는 프로젝트 접근 시 빈 리스트 반환 또는 예외 처리
+                    // 여기서는 빈 리스트를 반환하여 UI에서 자연스럽게 처리하도록 함
+                    return List.of();
                 }
             }
     
@@ -115,16 +123,27 @@ public class EntryController {
         }
     
         // 3. (R) 단일 조회 [수정]
-        @GetMapping("/{id}")
-        public ResponseEntity<Entry> getEntryById(@PathVariable Long id, Principal principal) throws AccessDeniedException { // [수정]
-            com.labnote.backend.User user = getAuthenticatedUser(principal);
-            // [수정] ID와 User로 노트 소유권 확인
-            Entry entry = entryRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new AccessDeniedException("접근 권TOC한이 없거나 존재하지 않는 노트입니다."));
-    
-            return ResponseEntity.ok(entry);
-        }
-    
+            @GetMapping("/{id}")
+            public ResponseEntity<Entry> getEntryById(@PathVariable Long id, Principal principal) throws AccessDeniedException { // [수정]
+                com.labnote.backend.User user = getAuthenticatedUser(principal);
+        
+                // [핵심 수정] 권한 확인 로직 변경
+                Entry entry = entryRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("노트를 찾을 수 없습니다."));
+        
+                if (entry.getProject() != null) {
+                    Project project = entry.getProject();
+                    if (!project.getOwner().equals(user) && !project.getCollaborators().contains(user)) {
+                        throw new AccessDeniedException("이 프로젝트의 노트에 접근할 권한이 없습니다.");
+                    }
+                } else {
+                    if (!entry.getUser().equals(user)) {
+                        throw new AccessDeniedException("이 노트에 접근할 권한이 없습니다.");
+                    }
+                }
+        
+                return ResponseEntity.ok(entry);
+            }    
         // 4. (U) 수정 [수정]
         @PutMapping("/{id}")
         public ResponseEntity<Entry> updateEntry(@PathVariable Long id,
@@ -133,22 +152,39 @@ public class EntryController {
                                                  @RequestParam(value = "file", required = false) MultipartFile file,
                                                  Principal principal) throws IOException, AccessDeniedException { // [수정]
     
-            com.labnote.backend.User user = getAuthenticatedUser(principal);
-    
-            // [수정] ID와 User로 기존 노트 소유권 확인
-            Entry existingEntry = entryRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new AccessDeniedException("접근 권한이 없거나 존재하지 않는 노트입니다."));
-    
-            // --- [추가] 버전 기록 생성 ---
-            EntryVersion newVersion = new EntryVersion();
-            newVersion.setEntry(existingEntry);
-            newVersion.setTitle(existingEntry.getTitle());
-            newVersion.setContent(existingEntry.getContent());
-            newVersion.setResearcher(existingEntry.getResearcher());
-            newVersion.setTags(new ArrayList<>(existingEntry.getTags())); // 현재 태그 복사
-            existingEntry.getVersions().add(newVersion);
-            // --- 버전 기록 끝 ---
-    
+                    com.labnote.backend.User user = getAuthenticatedUser(principal);
+                
+                    // [수정] ID로 노트를 먼저 찾음
+                    Entry existingEntry = entryRepository.findById(id)
+                            .orElseThrow(() -> new ResourceNotFoundException("노트를 찾을 수 없습니다.")); // 404 Not Found
+                
+                    // [핵심 수정] 노트에 대한 수정 권한 확인
+                    // 1. 노트가 특정 프로젝트에 속해있는 경우
+                    if (existingEntry.getProject() != null) {
+                        Project project = existingEntry.getProject();
+                        // 사용자가 프로젝트의 소유자도 아니고, 협업자도 아니면 접근 거부
+                        if (!project.getOwner().equals(user) && !project.getCollaborators().contains(user)) {
+                            throw new AccessDeniedException("이 프로젝트의 노트를 수정할 권한이 없습니다.");
+                        }
+                    }
+                    // 2. 노트가 미분류인 경우 (어떤 프로젝트에도 속하지 않음)
+                    else {
+                        // 기존 로직과 동일: 노트의 소유자만 수정 가능
+                        if (!existingEntry.getUser().equals(user)) {
+                            throw new AccessDeniedException("이 노트를 수정할 권한이 없습니다.");
+                        }
+                    }
+                
+                 // --- [추가] 버전 기록 생성 ---
+                 EntryVersion newVersion = new EntryVersion();
+                 newVersion.setEntry(existingEntry);
+                 newVersion.setTitle(existingEntry.getTitle());
+                 newVersion.setContent(existingEntry.getContent());
+                 newVersion.setResearcher(existingEntry.getResearcher());
+                 newVersion.setTags(new ArrayList<>(existingEntry.getTags())); // 현재 태그 복사
+                 newVersion.setModifiedBy(user); // [핵심 추가] 수정한 사용자 정보 저장
+                 existingEntry.getVersions().add(newVersion);
+                 // --- 버전 기록 끝 ---    
             Entry entryDetails = objectMapper.readValue(entryJson, Entry.class);
     
             // 필드 업데이트
@@ -157,9 +193,9 @@ public class EntryController {
             existingEntry.setResearcher(entryDetails.getResearcher());
             existingEntry.setTags(entryDetails.getTags());
     
-            // 프로젝트 업데이트 (소유권 확인 포함)
+            // 프로젝트 업데이트 (소유권 및 협업자 권한 확인 포함)
             if (projectId != null) {
-                Project project = projectRepository.findByIdAndUser(projectId, user)
+                Project project = projectRepository.findByIdAndOwnerOrCollaboratorsContains(projectId, user, user)
                         .orElseThrow(() -> new AccessDeniedException("접근 권한이 없는 프로젝트입니다."));
                 existingEntry.setProject(project);
             } else {
@@ -180,9 +216,21 @@ public class EntryController {
     public ResponseEntity<Void> deleteEntry(@PathVariable Long id, Principal principal) throws AccessDeniedException { // [수정]
         com.labnote.backend.User user = getAuthenticatedUser(principal);
 
-        // [수정] ID와 User로 노트 소유권 확인
-        Entry entry = entryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new AccessDeniedException("접근 권한이 없거나 존재하지 않는 노트입니다."));
+        // [수정] ID로 노트를 먼저 찾음
+        Entry entry = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("노트를 찾을 수 없습니다."));
+
+        // [핵심 수정] 노트에 대한 삭제 권한 확인
+        if (entry.getProject() != null) {
+            Project project = entry.getProject();
+            if (!project.getOwner().equals(user) && !project.getCollaborators().contains(user)) {
+                throw new AccessDeniedException("이 프로젝트의 노트를 삭제할 권한이 없습니다.");
+            }
+        } else {
+            if (!entry.getUser().equals(user)) {
+                throw new AccessDeniedException("이 노트를 삭제할 권한이 없습니다.");
+            }
+        }
 
         entryRepository.delete(entry);
         return ResponseEntity.noContent().build();
@@ -209,8 +257,21 @@ public class EntryController {
     @GetMapping("/{id}/export/markdown")
     public ResponseEntity<String> exportToMarkdown(@PathVariable Long id, Principal principal) throws AccessDeniedException {
         com.labnote.backend.User user = getAuthenticatedUser(principal);
-        Entry entry = entryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new AccessDeniedException("접근 권한이 없거나 존재하지 않는 노트입니다."));
+
+        // [핵심 수정] 권한 확인 로직 변경
+        Entry entry = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("노트를 찾을 수 없습니다."));
+
+        if (entry.getProject() != null) {
+            Project project = entry.getProject();
+            if (!project.getOwner().equals(user) && !project.getCollaborators().contains(user)) {
+                throw new AccessDeniedException("이 프로젝트의 노트에 접근할 권한이 없습니다.");
+            }
+        } else {
+            if (!entry.getUser().equals(user)) {
+                throw new AccessDeniedException("이 노트에 접근할 권한이 없습니다.");
+            }
+        }
 
         // HTML을 Markdown으로 변환
         String htmlContent = entry.getContent();
@@ -229,8 +290,21 @@ public class EntryController {
     @GetMapping("/{id}/versions")
     public ResponseEntity<List<EntryVersion>> getVersions(@PathVariable Long id, Principal principal) throws AccessDeniedException {
         com.labnote.backend.User user = getAuthenticatedUser(principal);
-        Entry entry = entryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new AccessDeniedException("접근 권한이 없거나 존재하지 않는 노트입니다."));
+
+        // [핵심 수정] 권한 확인 로직 변경
+        Entry entry = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("노트를 찾을 수 없습니다."));
+
+        if (entry.getProject() != null) {
+            Project project = entry.getProject();
+            if (!project.getOwner().equals(user) && !project.getCollaborators().contains(user)) {
+                throw new AccessDeniedException("이 프로젝트의 노트에 접근할 권한이 없습니다.");
+            }
+        } else {
+            if (!entry.getUser().equals(user)) {
+                throw new AccessDeniedException("이 노트에 접근할 권한이 없습니다.");
+            }
+        }
 
         List<EntryVersion> versions = entryVersionRepository.findByEntryOrderByVersionTimestampDesc(entry);
         return ResponseEntity.ok(versions);
@@ -240,8 +314,21 @@ public class EntryController {
     @PostMapping("/{id}/versions/{versionId}/restore")
     public ResponseEntity<Entry> restoreVersion(@PathVariable Long id, @PathVariable Long versionId, Principal principal) throws AccessDeniedException {
         com.labnote.backend.User user = getAuthenticatedUser(principal);
-        Entry entry = entryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new AccessDeniedException("접근 권한이 없거나 존재하지 않는 노트입니다."));
+
+        // [핵심 수정] 권한 확인 로직 변경
+        Entry entry = entryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("노트를 찾을 수 없습니다."));
+
+        if (entry.getProject() != null) {
+            Project project = entry.getProject();
+            if (!project.getOwner().equals(user) && !project.getCollaborators().contains(user)) {
+                throw new AccessDeniedException("이 프로젝트의 노트를 복원할 권한이 없습니다.");
+            }
+        } else {
+            if (!entry.getUser().equals(user)) {
+                throw new AccessDeniedException("이 노트를 복원할 권한이 없습니다.");
+            }
+        }
 
         EntryVersion versionToRestore = entryVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 버전을 찾을 수 없습니다."));

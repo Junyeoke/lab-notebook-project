@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import api from './api';
+import api, { addCollaborator } from './api'; // [수정] addCollaborator import
 import Swal from 'sweetalert2';
 import { useAuth } from './AuthContext';
 import { DndProvider } from 'react-dnd';
@@ -22,6 +22,8 @@ import { themes } from './themes';
 import { dataURLtoFile } from './utils';
 import 'react-quill-new/dist/quill.snow.css';
 import './App.css';
+import './components/HistoryPanel.css';
+import './components/TemplateView.css';
 
 const ENTRY_API_URL = '/entries';
 const PROJECT_API_URL = '/projects';
@@ -565,6 +567,46 @@ function LabNotebookApp() {
         });
     };
 
+    // --- [추가] 협업자 추가 핸들러 ---
+    const handleAddCollaborator = async (projectId, email) => {
+        try {
+            const response = await addCollaborator(projectId, email);
+            const updatedProject = response.data;
+
+            // 1. 전체 프로젝트 목록 업데이트
+            setProjects(prevProjects =>
+                prevProjects.map(p => (p.id === updatedProject.id ? updatedProject : p))
+            );
+
+            // 2. 현재 선택된 노트의 프로젝트 정보도 업데이트
+            if (selectedEntry && selectedEntry.project?.id === updatedProject.id) {
+                setSelectedEntry(prevEntry => ({
+                    ...prevEntry,
+                    project: updatedProject,
+                }));
+            }
+            
+            Swal.fire('성공', '협업자가 성공적으로 추가되었습니다.', 'success');
+
+        } catch (error) {
+            console.error("협업자 추가 실패:", error);
+            let errorMessage = '협업자 추가에 실패했습니다.'; // 기본 메시지
+            if (error.response) {
+                // 404: 사용자를 찾을 수 없음
+                if (error.response.status === 404) {
+                    errorMessage = '존재하지 않는 사용자 입니다.';
+                } 
+                // 다른 상태 코드(400 등)에 대해 서버가 보낸 메시지가 있으면 사용
+                else if (error.response.data?.message) {
+                    errorMessage = error.response.data.message;
+                }
+            }
+            Swal.fire('오류', errorMessage, 'error');
+            throw new Error(errorMessage); // CollaboratorManager에서 에러를 캐치하도록 throw
+        }
+    };
+
+
     const renderMainContent = () => {
         switch (currentView) {
             case 'home':
@@ -578,7 +620,16 @@ function LabNotebookApp() {
                            handleProjectCardClick={handleProjectCardClick}
                        />;
             case 'read':
-                return <NoteDetailView selectedEntry={selectedEntry} handleShowHistory={handleShowHistory} handleEditClick={handleEditClick} handleDelete={handleDelete} />;
+                // [수정] NoteDetailView에 props 전달
+                return <NoteDetailView 
+                           selectedEntry={selectedEntry} 
+                           handleShowHistory={handleShowHistory} 
+                           handleEditClick={handleEditClick} 
+                           handleDelete={handleDelete}
+                           onAddCollaborator={handleAddCollaborator}
+                           onRemoveCollaborator={() => { console.log("Remove collaborator clicked (not implemented yet)")}}
+                           currentUsername={user?.username}
+                       />;
             case 'form':
                 return <NoteForm
                     formData={formData}
@@ -598,7 +649,13 @@ function LabNotebookApp() {
                     handleFileChange={handleFileChange} // Pass the new handler
                 />;
             case 'templates':
-                return <TemplateView templates={templates} onSaveTemplate={handleSaveTemplate} onDeleteTemplate={handleDeleteTemplate} />;
+                return <TemplateView 
+                           templates={templates} 
+                           onSaveTemplate={handleSaveTemplate} 
+                           onDeleteTemplate={handleDeleteTemplate}
+                           modules={modules}
+                           formats={formats}
+                       />;
             case 'settings':
                 return <SettingsView applyTheme={applyTheme} currentThemeName={currentThemeName} />;
             case 'my-info':
