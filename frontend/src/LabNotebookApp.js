@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { useAuth } from './AuthContext';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Container, Row, Col, Offcanvas } from 'react-bootstrap';
+import { Container, Row, Col, Offcanvas, Modal } from 'react-bootstrap'; // [수정] Modal 추가
 
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -17,6 +17,7 @@ import HistoryPanel from './components/HistoryPanel';
 import TemplateView from './components/TemplateView';
 import SettingsView from './components/SettingsView';
 import MyInfoView from './components/MyInfoView';
+import CollaboratorManager from './components/CollaboratorManager'; // [추가]
 import { themes } from './themes';
 
 import { dataURLtoFile } from './utils';
@@ -24,6 +25,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import './App.css';
 import './components/HistoryPanel.css';
 import './components/TemplateView.css';
+import './components/NoteListPanel.css';
 
 const ENTRY_API_URL = '/entries';
 const PROJECT_API_URL = '/projects';
@@ -66,6 +68,10 @@ function LabNotebookApp() {
     const fileInputRef = useRef(null);
     const quillRef = useRef(null);
     const isUploadingRef = useRef(false);
+
+    // [추가] 협업자 모달 관련 상태
+    const [showCollaboratorModal, setShowCollaboratorModal] = useState(false);
+    const [selectedProjectForModal, setSelectedProjectForModal] = useState(null);
 
     const applyTheme = useCallback((theme) => {
         Object.keys(theme.colors).forEach(key => {
@@ -606,6 +612,17 @@ function LabNotebookApp() {
         }
     };
 
+    // [이동] 협업자 모달 열기/닫기 핸들러
+    const handleShowCollaboratorModal = (project) => {
+        setSelectedProjectForModal(project);
+        setShowCollaboratorModal(true);
+    };
+
+    const handleCloseCollaboratorModal = () => {
+        setShowCollaboratorModal(false);
+        setSelectedProjectForModal(null);
+    };
+
 
     const renderMainContent = () => {
         switch (currentView) {
@@ -671,6 +688,8 @@ function LabNotebookApp() {
         isProjectsExpanded, setIsProjectsExpanded, projects, selectedProjectId, handleProjectSelect,
         handleNoteDrop, handleDeleteProject, newProjectName, setNewProjectName, handleCreateProject,
         isLoading, entries, handleNoteCardClick, selectedEntry, searchQuery, handleSearchChange,
+        onShowCollaboratorModal: handleShowCollaboratorModal,
+        currentUsername: user?.username,
     };
 
     return (

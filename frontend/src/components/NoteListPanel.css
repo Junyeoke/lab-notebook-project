@@ -1,0 +1,180 @@
+.note-list-panel {
+    width: 280px;
+    background-color: var(--color-background-light);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.panel-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--color-text-dark);
+}
+
+.sidebar-search {
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-search input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-surface);
+    color: var(--color-text-dark);
+}
+
+.panel-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-bottom: 1rem; /* Prevent content from being cut off */
+}
+
+.collapsible-section {
+    margin-bottom: 1rem;
+}
+
+.collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    background-color: var(--color-background);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-dark);
+}
+
+.collapsible-header:hover {
+    background-color: var(--color-border);
+}
+
+.collapsible-header .header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.collapsible-header h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.collapsible-content {
+    padding: 0.5rem 0;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    color: var(--color-text-medium);
+    transition: background-color 0.2s;
+    position: relative; /* For positioning delete button */
+}
+
+.project-item:hover {
+    background-color: var(--color-background);
+}
+
+.project-item.active {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary-dark);
+    font-weight: bold;
+}
+
+.project-item span {
+    flex-grow: 1;
+    margin-left: 0.5rem;
+}
+
+.project-item .delete-item-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.2rem;
+    margin-left: 0.5rem;
+    visibility: hidden; /* Hidden by default */
+}
+
+.project-item:hover .delete-item-btn {
+    visibility: visible; /* Visible on hover */
+}
+
+.project-item .delete-item-btn:hover {
+    color: var(--color-danger);
+}
+
+/* [추가] 협업 아이콘 스타일 */
+.project-item-details {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 0.5rem;
+}
+
+.project-item-details .collaborator-icon {
+    color: var(--color-secondary); /* 협업 아이콘 색상 */
+    cursor: pointer;
+    margin-left: 0.5rem;
+    transition: color 0.2s;
+}
+
+.project-item-details .collaborator-icon:hover {
+    color: var(--color-secondary-dark);
+}
+
+
+.add-item-form {
+    display: flex;
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+}
+
+.add-item-form input {
+    flex-grow: 1;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-surface);
+    color: var(--color-text-dark);
+}
+
+.add-item-form button {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+}
+
+.note-list {
+    padding: 0 1rem;
+}
+
+.note-list-empty {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--color-text-medium);
+}
+
+/* Drag and Drop styles */
+.droppable {
+    border: 1px dashed var(--color-primary);
+}
+
+.droppable[data-hovered="true"] {
+    background-color: var(--color-primary-light);
+}

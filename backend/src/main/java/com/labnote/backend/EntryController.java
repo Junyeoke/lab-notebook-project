@@ -63,7 +63,7 @@ public class EntryController {
     
             if (projectId != null) {
                 // [수정] 내가 소유하거나 협업중인 프로젝트가 맞는지 확인
-                Project project = projectRepository.findByIdAndOwnerOrCollaboratorsContains(projectId, user, user)
+                Project project = projectRepository.findProjectByIdForMember(projectId, user)
                         .orElseThrow(() -> new AccessDeniedException("접근 권한이 없는 프로젝트입니다."));
                 entry.setProject(project);
             } else {
@@ -104,7 +104,7 @@ public class EntryController {
                 try {
                     Long pid = Long.parseLong(projectId);
                     // [핵심 수정] 프로젝트 접근 권한 확인
-                    projectRepository.findByIdAndOwnerOrCollaboratorsContains(pid, user, user)
+                    projectRepository.findProjectByIdForMember(pid, user)
                             .orElseThrow(() -> new AccessDeniedException("접근 권한이 없는 프로젝트입니다."));
                     // 권한이 있으면 해당 프로젝트의 모든 노트를 반환
                     return entryRepository.findByProjectId(pid);
@@ -195,7 +195,7 @@ public class EntryController {
     
             // 프로젝트 업데이트 (소유권 및 협업자 권한 확인 포함)
             if (projectId != null) {
-                Project project = projectRepository.findByIdAndOwnerOrCollaboratorsContains(projectId, user, user)
+                Project project = projectRepository.findProjectByIdForMember(projectId, user)
                         .orElseThrow(() -> new AccessDeniedException("접근 권한이 없는 프로젝트입니다."));
                 existingEntry.setProject(project);
             } else {
