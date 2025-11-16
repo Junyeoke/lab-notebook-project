@@ -3,7 +3,7 @@ import { Form, Button, Card, Alert, Image } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import api, { updateUserProfile } from '../api';
 import { getProfilePictureUrl } from '../utils';
-import { FiCamera } from 'react-icons/fi';
+import { FiCamera, FiUser, FiMail, FiSave, FiX, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
     const [username, setUsername] = useState('');
@@ -90,94 +90,102 @@ const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
     
     const isGoogleUser = user.provider === 'google';
 
+    const cancelEditing = () => {
+        setIsEditing(false);
+        setUsername(user.username);
+        setEmail(user.email);
+        setPictureFile(null);
+        setPicturePreview(getProfilePictureUrl(user.picture));
+        setError('');
+    };
+
     return (
-        <div className="my-info-view">
-            <Card>
-                <Card.Header as="h2">내 정보</Card.Header>
-                <Card.Body>
-                    {error && <Alert variant="danger">{error}</Alert>}
-                    <Form onSubmit={handleUpdate}>
-                        <Form.Group className="mb-4 text-center">
-                            <div className="profile-picture-container" onClick={() => isEditing && fileInputRef.current.click()}>
-                                <Image src={picturePreview || '/default-profile.png'} roundedCircle className="profile-picture" />
-                                {isEditing && (
-                                    <div className="profile-picture-overlay">
-                                        <FiCamera size={24} />
-                                    </div>
-                                )}
-                            </div>
-                            <Form.Control
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handlePictureChange}
-                                style={{ display: 'none' }}
-                                accept="image/*"
-                                disabled={!isEditing}
-                            />
-                        </Form.Group>
+        <div className="my-info-page-container">
+            {/* Left Column: Profile Card */}
+            <div className="my-info-profile-card">
+                <div className="profile-picture-container" onClick={() => isEditing && fileInputRef.current.click()}>
+                    <Image src={picturePreview} roundedCircle className="profile-picture" />
+                    {isEditing && (
+                        <div className="profile-picture-overlay">
+                            <FiCamera size={32} />
+                        </div>
+                    )}
+                </div>
+                <h2 className="profile-username">{user.username}</h2>
+                <p className="profile-email">{user.email}</p>
+                <span className="provider-badge">{user.provider || 'local'}</span>
+                {!isEditing && (
+                    <Button variant="primary" className="mt-4 d-block mx-auto" onClick={() => setIsEditing(true)}>
+                        <FiEdit2 className="me-2" /> 프로필 수정
+                    </Button>
+                )}
+            </div>
 
-                        <Form.Group className="mb-3" controlId="formEmail">
-                            <Form.Label>이메일</Form.Label>
-                            <Form.Control 
-                                type="email" 
-                                value={email} 
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={!isEditing || isGoogleUser} 
-                            />
-                             {isGoogleUser && (
-                                <Form.Text className="text-muted">
-                                    Google 로그인 사용자는 이메일을 변경할 수 없습니다.
-                                </Form.Text>
-                            )}
-                        </Form.Group>
-
-                        <Form.Group className="mb-3" controlId="formUsername">
-                            <Form.Label>이름</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                disabled={!isEditing || isGoogleUser}
-                            />
-                            {isGoogleUser && (
-                                <Form.Text className="text-muted">
-                                    Google 로그인 사용자는 이름을 변경할 수 없습니다.
-                                </Form.Text>
-                            )}
-                        </Form.Group>
-
-                        {isEditing ? (
-                            <div>
-                                <Button variant="primary" type="submit" className="me-2">
-                                    저장
-                                </Button>
-                                <Button variant="secondary" onClick={() => {
-                                    setIsEditing(false);
-                                    setUsername(user.username);
-                                    setEmail(user.email);
-                                    setPictureFile(null);
-                                    setPicturePreview(getProfilePictureUrl(user.picture));
-                                    setError('');
-                                }}>
-                                    취소
-                                </Button>
-                            </div>
-                        ) : (
-                            <Button variant="outline-primary" onClick={() => setIsEditing(true)}>
-                                정보 수정
-                            </Button>
+            {/* Right Column: Settings */}
+            <div className="my-info-settings-panel">
+                {error && <Alert variant="danger">{error}</Alert>}
+                
+                <Form onSubmit={handleUpdate} className={`settings-card ${isEditing ? 'editing' : ''}`}>
+                    <h3 className="settings-card-header">계정 정보</h3>
+                    <Form.Control
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handlePictureChange}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        disabled={!isEditing}
+                    />
+                    <Form.Group className="mb-3" controlId="formUsername">
+                        <Form.Label><FiUser className="me-2"/>이름</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            disabled={!isEditing || isGoogleUser}
+                        />
+                        {isGoogleUser && (
+                            <Form.Text className="text-muted">
+                                Google 로그인 사용자는 이름을 변경할 수 없습니다.
+                            </Form.Text>
                         )}
-                    </Form>
-                    <hr />
-                    <div className="danger-zone mt-4">
-                        <h5>회원탈퇴</h5>
-                        <p>계정을 삭제하면 모든 노트와 프로젝트가 영구적으로 삭제됩니다.</p>
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="formEmail">
+                        <Form.Label><FiMail className="me-2"/>이메일</Form.Label>
+                        <Form.Control 
+                            type="email" 
+                            value={email} 
+                            onChange={(e) => setEmail(e.target.value)}
+                            disabled={!isEditing || isGoogleUser} 
+                        />
+                         {isGoogleUser && (
+                            <Form.Text className="text-muted">
+                                Google 로그인 사용자는 이메일을 변경할 수 없습니다.
+                            </Form.Text>
+                        )}
+                    </Form.Group>
+
+                    {isEditing && (
+                        <div className="d-flex justify-content-end gap-2 mt-4">
+                            <Button variant="secondary" onClick={cancelEditing}>
+                                <FiX className="me-1" /> 취소
+                            </Button>
+                            <Button variant="primary" type="submit">
+                                <FiSave className="me-1" /> 변경사항 저장
+                            </Button>
+                        </div>
+                    )}
+                </Form>
+
+                <div className="settings-card danger-zone mt-4">
+                    <h3 className="settings-card-header text-danger">회원 탈퇴</h3>
+                    <p>계정을 삭제하면 모든 노트와 프로젝트가 영구적으로 삭제되며, 되돌릴 수 없습니다.</p>
+                    <div className="d-flex justify-content-end">
                         <Button variant="danger" onClick={handleDelete}>
-                            회원 탈퇴
+                            <FiTrash2 className="me-2" /> 계정 삭제
                         </Button>
                     </div>
-                </Card.Body>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 };

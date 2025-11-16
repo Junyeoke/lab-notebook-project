@@ -33,10 +33,14 @@ function LoginPage() {
                     <h1 className="intro-title">LogLy</h1>
                     <p className="intro-subtitle">당신의 연구를 위한 모던 디지털 랩노트</p>
                     <ul className="intro-features">
-                        <li><span role="img" aria-label="edit">📝</span> 당신의 스쳐가는 영감을 놓치지 마세요</li>
-                        <li><span role="img" aria-label="search">🔍</span> 흩어진 기억의 실마리를 단번에 찾아드립니다</li>
-                        <li><span role="img" aria-label="team">👥</span> 동료와 함께, 같은 꿈을 향해 나아가세요</li>
-                        <li><span role="img" aria-label="version">🗂️</span> 모든 과정은 의미가 있습니다, 되돌아볼 수 있도록</li>
+                        <li><span role="img" aria-label="edit">📝</span> 떠오르는 생각, 그 자리에서 바로
+                            기록 중 문득 든 아이디어도 놓치지 않고 기록하세요</li>
+                        <li><span role="img" aria-label="search">🔍</span> 필요한 순간, 바로 찾는 검색
+                            지난 기록이 궁금할 때, 몇 달 전 메모가 필요할 때</li>
+                        <li><span role="img" aria-label="team">👥</span> 함께 쓰는 노트
+                            팀원들과 실시간으로 공유하고 의견을 나누세요</li>
+                        <li><span role="img" aria-label="version">🗂️</span> 쌓이는 기록, 보이는 흐름
+                            실험의 전체 과정을 한눈에 확인할 수 있습니다</li>
                     </ul>
                 </div>
             </div>

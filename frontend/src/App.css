@@ -353,26 +353,76 @@ body {
     padding-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--color-border);
 }
-.my-info-view {
-    max-width: 800px;
+
+/* --- [신규] 내 정보 페이지 모던 디자인 --- */
+.my-info-page-container {
+    display: flex;
+    gap: var(--spacing-xl);
+    max-width: 1000px;
     margin: 0 auto;
     animation: fadeIn 0.4s var(--transition-medium);
 }
 
-.my-info-view .card-header {
-    font-weight: 700;
+.my-info-profile-card {
+    flex: 0 0 300px;
+    background-color: var(--color-surface);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-soft);
+    padding: var(--spacing-xl);
+    text-align: center;
+    align-self: flex-start; /* Stay at the top */
 }
 
-.my-info-view .danger-zone {
-    border: 1px solid var(--color-danger);
+.profile-username {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-xs);
+}
+
+.profile-email {
+    font-size: 1rem;
+    color: var(--color-text-medium);
+    margin-bottom: var(--spacing-md);
+}
+
+.my-info-settings-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.settings-card {
+    background-color: var(--color-surface);
     border-radius: var(--border-radius);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-soft);
     padding: var(--spacing-lg);
+}
+
+.settings-card-header {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.settings-card .form-label {
+    font-weight: 600;
+}
+
+.settings-card.danger-zone {
+    border-color: var(--color-danger);
     background-color: #fff5f5;
 }
-
-.my-info-view .danger-zone h5 {
+.settings-card.danger-zone .settings-card-header {
     color: var(--color-danger);
-    font-weight: 700;
+    border-bottom-color: var(--color-danger-light);
 }
 
 .my-info-view .danger-zone .btn-danger {
