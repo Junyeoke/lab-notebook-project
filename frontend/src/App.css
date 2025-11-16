@@ -141,7 +141,7 @@ body {
 }
 
 .note-list-panel-col {
-    flex: 0 0 320px;
+    flex: 0 0 360px;
     border-right: 1px solid var(--color-border);
     background-color: var(--color-background);
 }
@@ -527,10 +527,11 @@ body {
     border: 1px solid var(--color-border);
     border-left: none;
     color: var(--color-text-medium);
-    padding: 0 var(--spacing-md);
+    padding: 0 var(--spacing-sm);
     cursor: pointer;
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
     transition: all var(--transition-fast);
+    flex-shrink: 0;
 }
 
 .add-item-form button:hover {

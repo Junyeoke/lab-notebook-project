@@ -18,36 +18,27 @@ api.interceptors.request.use(
     }
 );
 
-// 2. 응답 인터셉터 [수정됨]
-api.interceptors.response.use(
-    (response) => {
+// 2. 응답 인터셉터 설정 함수
+export const setupInterceptors = (logout) => {
+    api.interceptors.response.use(
         // 성공 응답은 그대로 반환
-        return response;
-    },
-    (error) => {
-        // [수정] 401 오류 처리 로직
-        if (error.response && error.response.status === 401) {
-
-            const currentPath = window.location.pathname;
-
-            // [핵심] 현재 페이지가 /login 이나 /register가 아닐 때만
-            // (즉, 이미 로그인된 상태에서 토큰이 만료되었을 때만)
-            if (currentPath !== '/login' && currentPath !== '/register') {
-
-                localStorage.removeItem('token');
-                // (AuthContext의 logout을 호출하는 것이 더 좋지만,
-                //  여기서는 AuthContext에 접근할 수 없으므로 강제 리디렉션)
-                window.location.href = '/login';
-                console.error("인증 실패 (401). 토큰 만료. 로그아웃 처리됩니다.");
+        (response) => response,
+        // 실패 응답 처리
+        (error) => {
+            // 401 Unauthorized 에러인 경우 (토큰 만료 등)
+            if (error.response && error.response.status === 401) {
+                const currentPath = window.location.pathname;
+                // 로그인/회원가입 페이지가 아닌 경우에만 로그아웃 처리
+                if (currentPath !== '/login' && currentPath !== '/register') {
+                    console.error("인증 실패 (401). 토큰이 만료되었거나 유효하지 않습니다. 자동 로그아웃됩니다.");
+                    logout(); // AuthContext의 logout 함수 호출
+                }
             }
-            // (만약 현재 페이지가 /login 또는 /register라면?
-            //  -> 아무것도 안하고 에러를 그대로 반환시켜야 함)
+            // 다른 모든 에러는 그대로 반환
+            return Promise.reject(error);
         }
-
-        // 401이 아니거나, /login 페이지에서 발생한 401 에러를 그대로 반환
-        return Promise.reject(error);
-    }
-);
+    );
+};
 
 // ... (기존 코드)
 

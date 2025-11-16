@@ -1,5 +1,5 @@
 .note-list-panel {
-    width: 280px;
+    width: 100%;
     background-color: var(--color-background-light);
     border-right: 1px solid var(--color-border);
     display: flex;

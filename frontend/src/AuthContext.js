@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useRef, useCallback, useMemo } from 'react';
-import api from './api';
+import api, { setupInterceptors } from './api';
 import { jwtDecode } from 'jwt-decode';
 import Swal from 'sweetalert2';
 
@@ -77,6 +77,9 @@ export const AuthProvider = ({ children }) => {
 
     // 활동 감지 및 이벤트 등록
     useEffect(() => {
+        // API 인터셉터 설정
+        setupInterceptors(logout);
+
         const handleActivity = () => {
             resetTimer();
         };
