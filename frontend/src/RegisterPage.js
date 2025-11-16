@@ -94,69 +94,81 @@ function RegisterPage() {
     };
 
     return (
-        <div className="auth-container">
-            <form className="auth-form" onSubmit={handleSubmit}>
-                <h2>회원가입</h2>
-                <div className="form-group">
-                    <label>아이디 (Username)</label>
-                    <input
-                        type="text"
-                        className="form-input"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                        autoComplete="username"
-                    />
-                    {/* [추가] 아이디 상태 메시지 표시 */}
-                    <div className={`username-status ${usernameStatus.available}`}>
-                        {usernameStatus.message}
+        <div className="auth-page-container">
+            <div className="auth-intro-panel">
+                <div className="intro-content">
+                    <h1 className="intro-title">LogLy</h1>
+                    <p className="intro-subtitle">당신의 연구를 위한 모던 디지털 랩노트</p>
+                    <ul className="intro-features">
+                        <li><span role="img" aria-label="edit">📝</span> 당신의 스쳐가는 영감을 놓치지 마세요</li>
+                        <li><span role="img" aria-label="search">🔍</span> 흩어진 기억의 실마리를 단번에 찾아드립니다</li>
+                        <li><span role="img" aria-label="team">👥</span> 동료와 함께, 같은 꿈을 향해 나아가세요</li>
+                        <li><span role="img" aria-label="version">🗂️</span> 모든 과정은 의미가 있습니다, 되돌아볼 수 있도록</li>
+                    </ul>
+                </div>
+            </div>
+            <div className="auth-form-panel">
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    <h2>회원가입</h2>
+                    <div className="form-group">
+                        <label>아이디 (Username)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                            autoComplete="username"
+                        />
+                        <div className={`username-status ${usernameStatus.available}`}>
+                            {usernameStatus.message}
+                        </div>
                     </div>
-                </div>
-                <div className="form-group">
-                    <label>이메일 (Email)</label>
-                    <input
-                        type="email"
-                        className="form-input"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        autoComplete="email"
-                    />
-                </div>
-                <div className="form-group">
-                    <label>비밀번호 (Password)</label>
-                    <input
-                        type="password"
-                        className="form-input"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        autoComplete="new-password"
-                    />
-                </div>
-                <div className="form-group">
-                    <label>비밀번호 확인</label>
-                    <input
-                        type="password"
-                        className="form-input"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        autoComplete="new-password"
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className="form-submit-btn"
-                    // [추가] 아이디 확인 중이거나 사용 불가 시 버튼 비활성화
-                    disabled={usernameStatus.available !== 'available'}
-                >
-                    회원가입
-                </button>
-                <div className="auth-switch">
-                    이미 계정이 있으신가요? <Link to="/login">로그인</Link>
-                </div>
-            </form>
+                    <div className="form-group">
+                        <label>이메일 (Email)</label>
+                        <input
+                            type="email"
+                            className="form-input"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            autoComplete="email"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>비밀번호 (Password)</label>
+                        <input
+                            type="password"
+                            className="form-input"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            autoComplete="new-password"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>비밀번호 확인</label>
+                        <input
+                            type="password"
+                            className="form-input"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                            autoComplete="new-password"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        className="form-submit-btn"
+                        disabled={usernameStatus.available !== 'available'}
+                    >
+                        회원가입
+                    </button>
+                    <div className="auth-switch">
+                        이미 계정이 있으신가요? <Link to="/login">로그인</Link>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }

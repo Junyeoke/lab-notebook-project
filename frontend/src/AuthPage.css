@@ -1,34 +1,119 @@
-.auth-container {
+.auth-page-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-family-base);
+}
+
+.auth-intro-panel {
+    width: 50%;
+    background: linear-gradient(135deg, var(--color-primary), #4f46e5, #7c3aed);
+    background-size: 200% 200%;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    background-color: var(--color-background); /* Use a clean, light background */
-    font-family: var(--font-family-base);
-    color: var(--color-text-dark);
+    padding: var(--spacing-xl);
+    animation: gradient-animation 15s ease infinite;
+}
+
+.intro-content {
+    max-width: 450px;
+    text-align: left;
+}
+
+.intro-title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: var(--spacing-md);
+    animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.intro-subtitle {
+    font-size: 1.5rem;
+    opacity: 0;
+    margin-bottom: var(--spacing-xl);
+    animation: fade-in-up 0.8s ease-out 0.2s forwards;
+}
+
+.intro-features {
+    list-style: none;
+    padding: 0;
+    font-size: 1.1rem;
+}
+
+.intro-features li {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    opacity: 0;
+    animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.intro-features li:nth-child(1) { animation-delay: 0.4s; }
+.intro-features li:nth-child(2) { animation-delay: 0.6s; }
+.intro-features li:nth-child(3) { animation-delay: 0.8s; }
+.intro-features li:nth-child(4) { animation-delay: 1.0s; }
+
+.intro-features span[role="img"] {
+    font-size: 1.5rem;
+}
+
+.auth-form-panel {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    color: white;
+    background: linear-gradient(135deg, var(--color-primary), #4f46e5, #7c3aed);
+    background-size: 200% 200%;
+    animation: gradient-animation 15s ease infinite;
 }
 
 .auth-form {
-    background: var(--color-surface); /* White surface for the card */
-    padding: var(--spacing-xl); /* Generous padding */
-    border-radius: var(--border-radius); /* Consistent border-radius */
-    box-shadow: var(--shadow-soft); /* Subtle shadow */
+    background: transparent;
+    padding: 0; /* Remove padding from the form wrapper */
+    border-radius: var(--border-radius);
+    box-shadow: none; /* Remove shadow */
     width: 100%;
-    max-width: 420px; /* Optimal width for forms */
-    border: 1px solid var(--color-border); /* Clean border */
-    transition: all 0.2s ease-in-out;
+    max-width: 420px;
+    border: none; /* Remove border */
 }
 
 .auth-form:hover {
-    box-shadow: var(--shadow-medium); /* Slightly more pronounced on hover */
+    box-shadow: none;
 }
+
+/* --- [추가] 애니메이션 --- */
+@keyframes gradient-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/*.auth-form:hover {*/
+/*    box-shadow: var(--shadow-medium); !* Slightly more pronounced on hover *!*/
+/*}*/
 
 .auth-form h2 {
     text-align: center;
-    color: var(--color-primary); /* Primary color for the title */
+    color: white;
     margin-top: 0;
-    margin-bottom: var(--spacing-lg); /* Space below title */
-    font-size: 2rem; /* Clear title size */
+    margin-bottom: var(--spacing-lg);
+    font-size: 2rem;
     font-weight: 700;
 }
 
@@ -40,22 +125,28 @@
     margin-bottom: var(--spacing-sm);
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--color-text-medium);
+    color: rgba(255, 255, 255, 0.7);
 }
 .form-input {
     width: 100%;
     padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--color-border);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius);
     font-size: 1rem;
     font-family: inherit;
     box-sizing: border-box;
     transition: all 0.2s ease-in-out;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }
 .form-input:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-primary-light); /* Subtle focus ring */
+    border-color: white;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .form-submit-btn {
@@ -66,56 +157,54 @@
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    background-color: var(--color-primary);
-    color: var(--color-surface);
+    background-color: white;
+    color: var(--color-primary);
     transition: all 0.2s ease-in-out;
 }
 .form-submit-btn:hover {
-    background-color: var(--color-primary-dark);
-    transform: translateY(-1px); /* Slight lift */
+    background-color: #f0f0f0;
+    transform: translateY(-1px);
 }
 
 .auth-switch {
     text-align: center;
     margin-top: var(--spacing-lg);
     font-size: 0.9rem;
-    color: var(--color-text-medium);
+    color: rgba(255, 255, 255, 0.7);
 }
 .auth-switch a {
-    color: var(--color-primary);
+    color: white;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.2s ease-in-out;
 }
 .auth-switch a:hover {
     text-decoration: underline;
-    color: var(--color-primary-dark);
 }
 
 .social-login-separator {
     display: flex;
     align-items: center;
     text-align: center;
-    margin: var(--spacing-xl) 0; /* Space above and below separator */
+    margin: var(--spacing-xl) 0;
 }
 
 .social-login-separator::before,
 .social-login-separator::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .separator-text {
     padding: 0 var(--spacing-md);
     font-size: 0.8rem;
-    color: var(--color-text-light);
-    font-weight: 500;
-    background-color: var(--color-surface); /* Match form background */
+    color: rgba(255, 255, 255, 0.5);
+    background-color: transparent;
 }
 
 .social-login-buttons {
-    margin-top: var(--spacing-lg); /* Space between separator and button */
+    margin-top: var(--spacing-lg);
 }
 
 .google-login-btn {
@@ -123,21 +212,19 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    border: 1px solid var(--color-border);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius);
-    padding: var(--spacing-md) var(--spacing-lg); /* More generous padding */
+    padding: var(--spacing-md) var(--spacing-lg);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    background-color: var(--color-surface);
-    color: var(--color-text-dark);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
     transition: all 0.2s ease-in-out;
-    /* margin-top removed as it's now handled by .social-login-buttons */
 }
 
 .google-login-btn:hover {
-    background-color: var(--color-primary-light); /* Align with theme */
-    box-shadow: var(--shadow-soft);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .google-login-btn svg {

@@ -296,6 +296,7 @@ function LabNotebookApp() {
         setSearchQuery("");
         setSelectedEntry(null);
         setCurrentView('projects');
+        setShowNoteListPanel(true); // Ensure the panel is visible
         handleCloseOffcanvas();
     };
 
