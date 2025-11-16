@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -30,26 +31,49 @@ public class UserController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
-    @PutMapping("/me")
-    public ResponseEntity<?> updateUser(@RequestBody UserUpdateRequest request) {
+    @Autowired
+    private FileStorageService fileStorageService;
+
+    @PutMapping(value = "/me", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> updateUser(
+            @RequestParam(value = "username", required = false) String newUsername,
+            @RequestParam(value = "email", required = false) String newEmail,
+            @RequestParam(value = "picture", required = false) MultipartFile pictureFile
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
         User user = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String newUsername = request.username;
+        // Update username
         if (newUsername != null && !newUsername.trim().isEmpty() && !newUsername.equals(currentUsername)) {
             if (userRepository.existsByUsername(newUsername)) {
                 return ResponseEntity.badRequest().body(Map.of("message", "이미 존재하는 사용자 이름입니다."));
             }
             user.setUsername(newUsername.trim());
-            userRepository.save(user);
         }
 
+        // Update email
+        if (newEmail != null && !newEmail.trim().isEmpty() && !newEmail.equals(user.getEmail())) {
+            if (userRepository.existsByEmail(newEmail)) {
+                return ResponseEntity.badRequest().body(Map.of("message", "이미 사용중인 이메일입니다."));
+            }
+            user.setEmail(newEmail.trim());
+        }
+
+        // Update profile picture
+        if (pictureFile != null && !pictureFile.isEmpty()) {
+            String picturePath = fileStorageService.storeProfilePicture(pictureFile);
+            // Store the full URL or the relative path? Let's store the relative path.
+            // The frontend will prepend the base URL.
+            user.setPicture(picturePath);
+        }
+
+        userRepository.save(user);
+
         // Generate a new token with the updated details
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-        final String token = jwtTokenUtil.generateToken(userDetails);
+        final String token = jwtTokenUtil.generateToken(user);
 
         return ResponseEntity.ok(Map.of("token", token));
     }

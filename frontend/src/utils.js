@@ -41,3 +41,13 @@ export const getOriginalFileName = (storedFileName) => {
     const parts = storedFileName.split('_');
     return parts.length > 1 ? parts.slice(1).join('_') : storedFileName;
 };
+
+export const getProfilePictureUrl = (picturePath) => {
+    if (!picturePath) {
+        return '/default-profile.png'; // A default image in the public folder
+    }
+    if (picturePath.startsWith('http://') || picturePath.startsWith('https://')) {
+        return picturePath; // It's an absolute URL from Google
+    }
+    return `http://localhost:8080/uploads/${picturePath}`; // It's a relative path for local uploads
+};

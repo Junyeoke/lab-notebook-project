@@ -37,6 +37,22 @@ public class FileStorageService {
      * @return 서버에 저장된 고유한 파일명 (예: 123e4567-e89b-12d3-a456-426614174000_result.png)
      */
     public String storeFile(MultipartFile file) {
+        return store(file, this.fileStorageLocation);
+    }
+
+    public String storeProfilePicture(MultipartFile file) {
+        Path profilePicLocation = this.fileStorageLocation.resolve("profile_pictures");
+        try {
+            Files.createDirectories(profilePicLocation);
+        } catch (Exception ex) {
+            throw new RuntimeException("프로필 사진을 업로드할 디렉토리를 생성할 수 없습니다.", ex);
+        }
+        String storedFileName = store(file, profilePicLocation);
+        // Return the path relative to the main upload directory
+        return "profile_pictures/" + storedFileName;
+    }
+
+    private String store(MultipartFile file, Path location) {
         // 1. 파일명 정제 (보안을 위해 경로 문자 제거)
         String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
 
@@ -50,7 +66,7 @@ public class FileStorageService {
             }
 
             // 4. 저장할 최종 경로 (디렉토리 경로 + 고유 파일명)
-            Path targetLocation = this.fileStorageLocation.resolve(storedFileName);
+            Path targetLocation = location.resolve(storedFileName);
 
             // 5. 파일 시스템에 파일 저장 (이미 존재하면 덮어쓰기)
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);

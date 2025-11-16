@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fi';
 import { formatDate, isImageFile, getOriginalFileName } from '../utils';
 import CollaboratorManager from './CollaboratorManager'; // [추가]
+import CommentSection from './CommentSection'; // [추가]
 import './CollaboratorManager.css'; // [추가]
 
 const UPLOAD_URL = 'http://localhost:8080/uploads/';
@@ -64,6 +65,8 @@ const NoteDetailView = ({
                     currentUsername={currentUsername}
                 />
             )}
+
+            <CommentSection entryId={selectedEntry.id} />
         </div>
     );
 };

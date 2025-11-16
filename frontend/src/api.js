@@ -58,5 +58,30 @@ export const addCollaborator = (projectId, email) => {
     return api.post(`${PROJECT_API_URL}/${projectId}/collaborators`, { email });
 };
 
+// --- Comment API ---
+export const getComments = (entryId) => {
+    return api.get(`/entries/${entryId}/comments`);
+};
+
+export const addComment = (entryId, commentData) => {
+    return api.post(`/entries/${entryId}/comments`, commentData);
+};
+
+export const updateComment = (commentId, commentData) => {
+    return api.put(`/comments/${commentId}`, commentData);
+};
+
+export const deleteComment = (commentId) => {
+    return api.delete(`/comments/${commentId}`);
+};
+
+export const updateUserProfile = (formData) => {
+    return api.put('/user/me', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
+
 
 export default api;

@@ -182,9 +182,9 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     // 회원가입
-    const register = useCallback(async (username, password) => {
+    const register = useCallback(async (username, password, email) => {
         try {
-            await api.post('/auth/register', { username, password });
+            await api.post('/auth/register', { username, password, email });
             return { success: true };
         } catch (error) {
             console.error('회원가입 실패:', error);

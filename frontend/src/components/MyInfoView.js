@@ -1,16 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Button, Card, Alert } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Form, Button, Card, Alert, Image } from 'react-bootstrap';
 import Swal from 'sweetalert2';
-import api from '../api';
+import api, { updateUserProfile } from '../api';
+import { getProfilePictureUrl } from '../utils';
+import { FiCamera } from 'react-icons/fi';
 
 const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [pictureFile, setPictureFile] = useState(null);
+    const [picturePreview, setPicturePreview] = useState('');
     const [error, setError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         if (user) {
-            setUsername(user.username);
+            setUsername(user.username || '');
+            setEmail(user.email || '');
+            setPicturePreview(getProfilePictureUrl(user.picture));
         }
     }, [user]);
 
@@ -18,20 +26,40 @@ const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
         return null;
     }
 
+    const handlePictureChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setPictureFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPicturePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleUpdate = async (e) => {
         e.preventDefault();
         if (username.trim() === '') {
             setError('이름을 입력하세요.');
             return;
         }
+
+        const formData = new FormData();
+        formData.append('username', username.trim());
+        formData.append('email', email.trim());
+        if (pictureFile) {
+            formData.append('picture', pictureFile);
+        }
+
         try {
-            const updatedUser = await api.put('/user/me', { username: username.trim() });
-            onUpdateUser(updatedUser.data);
+            const response = await updateUserProfile(formData);
+            onUpdateUser(response.data.token);
             Swal.fire('성공', '회원 정보가 수정되었습니다.', 'success');
             setIsEditing(false);
             setError('');
         } catch (err) {
-            setError('정보 수정에 실패했습니다. 다시 시도해주세요.');
+            setError(err.response?.data?.message || '정보 수정에 실패했습니다. 다시 시도해주세요.');
             console.error(err);
         }
     };
@@ -59,6 +87,8 @@ const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
             }
         });
     };
+    
+    const isGoogleUser = user.provider === 'google';
 
     return (
         <div className="my-info-view">
@@ -67,12 +97,38 @@ const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
                 <Card.Body>
                     {error && <Alert variant="danger">{error}</Alert>}
                     <Form onSubmit={handleUpdate}>
+                        <Form.Group className="mb-4 text-center">
+                            <div className="profile-picture-container" onClick={() => isEditing && fileInputRef.current.click()}>
+                                <Image src={picturePreview || '/default-profile.png'} roundedCircle className="profile-picture" />
+                                {isEditing && (
+                                    <div className="profile-picture-overlay">
+                                        <FiCamera size={24} />
+                                    </div>
+                                )}
+                            </div>
+                            <Form.Control
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handlePictureChange}
+                                style={{ display: 'none' }}
+                                accept="image/*"
+                                disabled={!isEditing}
+                            />
+                        </Form.Group>
+
                         <Form.Group className="mb-3" controlId="formEmail">
                             <Form.Label>이메일</Form.Label>
-                            <Form.Control type="email" value={user.email} disabled />
-                            <Form.Text className="text-muted">
-                                이메일은 변경할 수 없습니다.
-                            </Form.Text>
+                            <Form.Control 
+                                type="email" 
+                                value={email} 
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={!isEditing || isGoogleUser} 
+                            />
+                             {isGoogleUser && (
+                                <Form.Text className="text-muted">
+                                    Google 로그인 사용자는 이메일을 변경할 수 없습니다.
+                                </Form.Text>
+                            )}
                         </Form.Group>
 
                         <Form.Group className="mb-3" controlId="formUsername">
@@ -81,9 +137,9 @@ const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                disabled={!isEditing || user.provider === 'google'}
+                                disabled={!isEditing || isGoogleUser}
                             />
-                            {user.provider === 'google' && (
+                            {isGoogleUser && (
                                 <Form.Text className="text-muted">
                                     Google 로그인 사용자는 이름을 변경할 수 없습니다.
                                 </Form.Text>
@@ -98,17 +154,18 @@ const MyInfoView = ({ user, onUpdateUser, onAccountDeleted }) => {
                                 <Button variant="secondary" onClick={() => {
                                     setIsEditing(false);
                                     setUsername(user.username);
+                                    setEmail(user.email);
+                                    setPictureFile(null);
+                                    setPicturePreview(getProfilePictureUrl(user.picture));
                                     setError('');
                                 }}>
                                     취소
                                 </Button>
                             </div>
                         ) : (
-                            ! (user.provider === 'google') && (
-                                <Button variant="outline-primary" onClick={() => setIsEditing(true)}>
-                                    이름 수정
-                                </Button>
-                            )
+                            <Button variant="outline-primary" onClick={() => setIsEditing(true)}>
+                                정보 수정
+                            </Button>
                         )}
                     </Form>
                     <hr />

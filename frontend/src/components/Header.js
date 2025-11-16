@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Container, Navbar, Button } from 'react-bootstrap';
 import { FiFileText, FiChevronDown, FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
+import { getProfilePictureUrl } from '../utils';
 
 const Header = ({ user, onGoHome, onShowOffcanvas, onLogout, onNavigateToMyInfo }) => {
     const [showUserPopover, setShowUserPopover] = useState(false);
@@ -41,7 +42,7 @@ const Header = ({ user, onGoHome, onShowOffcanvas, onLogout, onNavigateToMyInfo 
                 </Navbar.Brand>
                 <div ref={userMenuRef} className="user-menu-container">
                     <div className="user-menu-trigger" onClick={() => setShowUserPopover(!showUserPopover)}>
-                        {user?.picture && <img src={user.picture} alt="Profile" className="profile-picture" />}
+                        {user?.picture && <img src={getProfilePictureUrl(user.picture)} alt="Profile" className="profile-picture" />}
                         <span>{user?.username}님</span>
                         <FiChevronDown style={{ transform: showUserPopover ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
                     </div>

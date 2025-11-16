@@ -18,6 +18,7 @@ import java.util.Map; // Map.of()를 사용하기 위한 import
 class AuthRequest {
     public String username;
     public String password;
+    public String email;
 }
 
 /**
@@ -83,9 +84,22 @@ public class AuthController {
                     .body(Map.of("message", "이미 존재하는 사용자 이름입니다."));
         }
 
+        if (authRequest.email == null || authRequest.email.trim().isEmpty()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("message", "이메일은 필수 항목입니다."));
+        }
+
+        if (userRepository.existsByEmail(authRequest.email)) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("message", "이미 사용중인 이메일입니다."));
+        }
+
         // 새 User 객체 생성
         com.labnote.backend.User user = new com.labnote.backend.User();
         user.setUsername(authRequest.username);
+        user.setEmail(authRequest.email);
         // [중요] 비밀번호는 반드시 BCrypt 등으로 해시(암호화)하여 저장
         user.setPassword(passwordEncoder.encode(authRequest.password));
 

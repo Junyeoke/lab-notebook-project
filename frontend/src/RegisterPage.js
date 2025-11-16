@@ -20,6 +20,7 @@ function useDebounce(value, delay) {
 
 function RegisterPage() {
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -80,7 +81,7 @@ function RegisterPage() {
         }
 
         // AuthContext의 register 함수 호출 (반환값 {success, message} 사용)
-        const result = await auth.register(username, password);
+        const result = await auth.register(username, password, email);
 
         if (result.success) {
             Swal.fire('성공', '회원가입이 완료되었습니다! 로그인해주세요.', 'success');
@@ -110,6 +111,17 @@ function RegisterPage() {
                     <div className={`username-status ${usernameStatus.available}`}>
                         {usernameStatus.message}
                     </div>
+                </div>
+                <div className="form-group">
+                    <label>이메일 (Email)</label>
+                    <input
+                        type="email"
+                        className="form-input"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                    />
                 </div>
                 <div className="form-group">
                     <label>비밀번호 (Password)</label>
