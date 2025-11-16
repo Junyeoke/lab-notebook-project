@@ -31,18 +31,27 @@ function LoginPage() {
             <div className="auth-intro-panel">
                 <div className="intro-content">
                     <h1 className="intro-title">LogLy</h1>
-                    <p className="intro-subtitle">당신의 연구를 위한 모던 디지털 랩노트</p>
+                    <p className="intro-subtitle">당신의 연구를 더 스마트하게 정리하는 모던 디지털 랩노트예요</p>
                     <ul className="intro-features">
-                        <li><span role="img" aria-label="edit">📝</span> 떠오르는 생각, 그 자리에서 바로
-                            기록 중 문득 든 아이디어도 놓치지 않고 기록하세요</li>
-                        <li><span role="img" aria-label="search">🔍</span> 필요한 순간, 바로 찾는 검색
-                            지난 기록이 궁금할 때, 몇 달 전 메모가 필요할 때</li>
-                        <li><span role="img" aria-label="team">👥</span> 함께 쓰는 노트
-                            팀원들과 실시간으로 공유하고 의견을 나누세요</li>
-                        <li><span role="img" aria-label="version">🗂️</span> 쌓이는 기록, 보이는 흐름
-                            실험의 전체 과정을 한눈에 확인할 수 있습니다</li>
+                        <li>
+                            <span role="img" aria-label="edit">📝</span>
+                            스쳐 지나가는 영감, 이제 놓치지 않아요
+                        </li>
+                        <li>
+                            <span role="img" aria-label="search">🔍</span>
+                            흩어져 있던 기록도 한 번에 찾아드려요
+                        </li>
+                        <li>
+                            <span role="img" aria-label="team">👥</span>
+                            동료들과 함께 연구를 이어가요
+                        </li>
+                        <li>
+                            <span role="img" aria-label="version">🗂️</span>
+                            모든 과정이 의미 있어요. 언제든 다시 돌아볼 수 있어요
+                        </li>
                     </ul>
                 </div>
+
             </div>
             <div className="auth-form-panel">
                 <form className="auth-form" onSubmit={handleSubmit}>
