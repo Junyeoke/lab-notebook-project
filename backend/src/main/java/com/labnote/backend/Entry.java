@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.NoArgsConstructor; // 1. [수정] 기본 생성자 import
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,54 +12,101 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity // 이 클래스가 데이터베이스 테이블과 매핑됨을 선언
-@Table(name = "entries") // 테이블 이름을 'entries'로 지정
-@Getter // 모든 필드의 Getter 메소드를 자동 생성
-@Setter // 모든 필드의 Setter 메소드를 자동 생성
-@NoArgsConstructor // 2. [수정] ObjectMapper가 JSON을 객체로 변환할 때 필요한 기본 생성자 추가
+/**
+ * 개별 실험 노트 항목을 나타내는 JPA 엔티티 클래스입니다.
+ * 하나의 실험 기록에 대한 모든 정보를 담고 있습니다.
+ */
+@Entity
+@Table(name = "entries")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Entry {
 
-    @Id // 이 필드가 Primary Key(기본키)임을 선언
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // DB가 ID를 자동 생성 (Auto-Increment)
-    private Long id; // 실험 기록 고유 ID
+    /**
+     * 실험 노트 항목의 고유 식별자 (Primary Key).
+     * 데이터베이스에서 자동으로 생성됩니다 (Auto-increment).
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(nullable = false) // 'title' 컬럼, null을 허용하지 않음
-    private String title; // 실험 제목
+    /**
+     * 실험의 제목.
+     */
+    @Column(nullable = false)
+    private String title;
 
-    @Lob // 대용량 텍스트를 저장할 수 있도록 지정 (VARCHAR 대신 TEXT 타입 등)
-    @Column(nullable = false, columnDefinition = "TEXT") // 'content' 컬럼, null 불가, DB 타입을 TEXT로 명시
-    private String content; // 실험 내용 (본문)
+    /**
+     * 실험의 상세 내용.
+     * 긴 텍스트를 저장할 수 있도록 {@code TEXT} 타입으로 지정됩니다.
+     */
+    @Lob
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
 
-    @Column(nullable = true) // 'researcher' 컬럼, null 허용
-    private String researcher; // 실험자 이름
+    /**
+     * 실험을 수행한 연구원의 이름.
+     */
+    @Column(nullable = true)
+    private String researcher;
 
-    @CreationTimestamp // 데이터가 처음 생성될 때 현재 시간을 자동으로 저장
-    @Column(updatable = false) // 이 필드는 업데이트(수정) 시 변경되지 않음
-    private LocalDateTime createdAt; // 생성 일시
+    /**
+     * 항목이 처음 생성된 시간.
+     * 엔티티가 처음 저장될 때 자동으로 현재 시간이 기록됩니다.
+     */
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
-    @UpdateTimestamp // 데이터가 수정될 때 현재 시간을 자동으로 저장
-    private LocalDateTime updatedAt; // 수정 일시
+    /**
+     * 항목이 마지막으로 수정된 시간.
+     * 엔티티가 업데이트될 때마다 자동으로 현재 시간이 기록됩니다.
+     */
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
-    @ElementCollection(fetch = FetchType.EAGER) // [추가]
-    @CollectionTable(name = "entry_tags", joinColumns = @JoinColumn(name = "entry_id")) // [추가]
-    @Column(name = "tag") // [추가]
-    private List<String> tags = new ArrayList<>(); // [추가] 태그 목록
+    /**
+     * 항목과 관련된 태그 목록.
+     * 별도의 'entry_tags' 테이블에 저장됩니다.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "entry_tags", joinColumns = @JoinColumn(name = "entry_id"))
+    @Column(name = "tag")
+    private List<String> tags = new ArrayList<>();
 
-    @Column(nullable = true) // 파일은 선택 사항이므로 null 허용
-    private String attachedFilePath; // 서버에 저장된 파일의 이름 (또는 경로)
+    /**
+     * 항목에 첨부된 파일의 서버 내 저장 경로 또는 이름.
+     */
+    @Column(nullable = true)
+    private String attachedFilePath;
 
-    // --- [추가된 부분] ---
-    @ManyToOne(fetch = FetchType.EAGER) // Entry를 조회할 때 Project 정보도 '즉시' 가져옴
-    @JoinColumn(name = "project_id", nullable = true) // DB에 'project_id'라는 외래 키 컬럼 생성
-    private Project project; // 이 Entry가 속한 Project 객체
+    /**
+     * 이 항목이 속한 프로젝트.
+     * {@link Project} 엔티티와 다대일(N:1) 관계입니다.
+     * EAGER 로딩 전략을 사용하여 항목 조회 시 항상 프로젝트 정보를 함께 가져옵니다.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "project_id", nullable = true)
+    private Project project;
 
-    // --- [추가된 부분] ---
-    @ManyToOne(fetch = FetchType.LAZY) // Entry 조회 시 User를 항상 가져올 필요는 없음 (LAZY)
-    @JoinColumn(name = "user_id", nullable = false) // 'user_id' 외래 키, null 불가
+    /**
+     * 이 항목을 작성한 사용자 (소유자).
+     * {@link User} 엔티티와 다대일(N:1) 관계입니다.
+     * LAZY 로딩 전략을 사용하며, JSON 직렬화 시 무한 루프를 방지하기 위해 {@code @JsonIgnore}를 사용합니다.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
-    private User user; // 이 노트의 소유자
+    private User user;
 
+    /**
+     * 이 항목의 모든 버전(수정 내역) 목록.
+     * {@link EntryVersion} 엔티티와 일대다(1:N) 관계입니다.
+     * 항목이 삭제되면 관련된 모든 버전도 함께 삭제됩니다.
+     * LAZY 로딩 전략을 사용하며, JSON 직렬화 시 무한 루프를 방지하기 위해 {@code @JsonIgnore}를 사용합니다.
+     */
     @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnore // Entry 조회 시 모든 버전을 가져오지 않도록 설정 (필요 시 별도 API로 조회)
+    @JsonIgnore
     private List<EntryVersion> versions = new ArrayList<>();
 }

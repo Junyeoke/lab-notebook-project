@@ -31,25 +31,25 @@ function LoginPage() {
             <div className="auth-intro-panel">
                 <div className="intro-content">
                     <h1 className="intro-title">LogLy</h1>
-                    <p className="intro-subtitle">당신의 연구를 더 스마트하게 정리하는 모던 디지털 랩노트예요</p>
-                    <ul className="intro-features">
-                        <li>
-                            <span role="img" aria-label="edit">📝</span>
-                            스쳐 지나가는 영감, 이제 놓치지 않아요
-                        </li>
-                        <li>
-                            <span role="img" aria-label="search">🔍</span>
-                            흩어져 있던 기록도 한 번에 찾아드려요
-                        </li>
-                        <li>
-                            <span role="img" aria-label="team">👥</span>
-                            동료들과 함께 연구를 이어가요
-                        </li>
-                        <li>
-                            <span role="img" aria-label="version">🗂️</span>
-                            모든 과정이 의미 있어요. 언제든 다시 돌아볼 수 있어요
-                        </li>
-                    </ul>
+                    <p className="intro-subtitle">당신의 연구를 더 스마트하게.</p>
+                    {/*<ul className="intro-features">*/}
+                    {/*    <li>*/}
+                    {/*        <span role="img" aria-label="edit">📝</span>*/}
+                    {/*        스쳐 지나가는 영감, 이제 놓치지 않아요*/}
+                    {/*    </li>*/}
+                    {/*    <li>*/}
+                    {/*        <span role="img" aria-label="search">🔍</span>*/}
+                    {/*        흩어져 있던 기록도 한 번에 찾아드려요*/}
+                    {/*    </li>*/}
+                    {/*    <li>*/}
+                    {/*        <span role="img" aria-label="team">👥</span>*/}
+                    {/*        동료들과 함께 연구를 이어가요*/}
+                    {/*    </li>*/}
+                    {/*    <li>*/}
+                    {/*        <span role="img" aria-label="version">🗂️</span>*/}
+                    {/*        모든 과정이 의미 있어요. 언제든 다시 돌아볼 수 있어요*/}
+                    {/*    </li>*/}
+                    {/*</ul>*/}
                 </div>
 
             </div>

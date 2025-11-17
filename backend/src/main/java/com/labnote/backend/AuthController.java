@@ -9,32 +9,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map; // Map.of()를 사용하기 위한 import
+import java.util.Map;
 
 /**
- * 로그인/회원가입 요청을 위한 간단한 DTO (Data Transfer Object) 클래스
- * (별도 파일로 분리해도 됩니다)
+ * 인증 관련 요청(로그인, 회원가입 등)을 처리하는 컨트롤러입니다.
+ * {@code /api/auth} 경로의 요청을 담당합니다.
  */
-class AuthRequest {
-    public String username;
-    public String password;
-    public String email;
-}
-
-/**
- * 로그인 성공 시 JWT 토큰을 반환하기 위한 DTO 클래스
- */
-class AuthResponse {
-    public String token;
-    public AuthResponse(String token) { this.token = token; }
-}
-
 @RestController
 @RequestMapping("/api/auth")
-// @CrossOrigin은 WebConfig.java에서 전역 설정했으므로 주석 처리 (또는 삭제)
 public class AuthController {
 
-    // 필요한 빈(Bean)들 주입
     @Autowired
     private AuthenticationManager authenticationManager;
 
@@ -51,33 +35,30 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     /**
-     * [신규] 아이디 중복 체크 API (GET /api/auth/check-username)
-     * @param username 쿼리 파라미터로 받을 아이디
-     * @return {"available": true/false} 형태의 JSON 응답
+     * 사용자 이름(ID)의 중복 여부를 확인하는 API입니다.
+     * 클라이언트에서 실시간으로 사용자 이름 사용 가능 여부를 확인할 수 있도록 지원합니다.
+     *
+     * @param username 중복 확인할 사용자 이름. 쿼리 파라미터로 전달됩니다.
+     * @return 사용 가능 여부를 담은 JSON 객체. e.g., {@code {"available": true}}
      */
     @GetMapping("/check-username")
     public ResponseEntity<?> checkUsername(@RequestParam("username") String username) {
-        // 아이디가 비어있거나 공백이면 사용 불가
         if (username == null || username.trim().isEmpty()) {
             return ResponseEntity.ok(Map.of("available", false));
         }
-
-        // userRepository.existsByUsername()을 호출
-        // DB에 존재하면(true) -> 사용 불가(false)
-        // DB에 존재하지 않으면(false) -> 사용 가능(true)
         boolean isAvailable = !userRepository.existsByUsername(username.trim());
-
         return ResponseEntity.ok(Map.of("available", isAvailable));
     }
 
     /**
-     * 회원가입 API (POST /api/auth/register)
-     * @param authRequest username, password가 담긴 JSON 요청 본문
-     * @return 성공 또는 실패 메시지
+     * 신규 사용자 회원가입을 처리하는 API입니다.
+     * 요청 본문으로 받은 사용자 정보(username, password, email)를 검증하고 데이터베이스에 저장합니다.
+     *
+     * @param authRequest 회원가입에 필요한 사용자 정보를 담은 DTO.
+     * @return 회원가입 성공 또는 실패 메시지를 담은 JSON 객체.
      */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
-        // [수정] existsByUsername으로 더 효율적인 중복 체크
         if (userRepository.existsByUsername(authRequest.username)) {
             return ResponseEntity
                     .badRequest()
@@ -96,11 +77,9 @@ public class AuthController {
                     .body(Map.of("message", "이미 사용중인 이메일입니다."));
         }
 
-        // 새 User 객체 생성
-        com.labnote.backend.User user = new com.labnote.backend.User();
+        User user = new User();
         user.setUsername(authRequest.username);
         user.setEmail(authRequest.email);
-        // [중요] 비밀번호는 반드시 BCrypt 등으로 해시(암호화)하여 저장
         user.setPassword(passwordEncoder.encode(authRequest.password));
 
         userRepository.save(user);
@@ -109,33 +88,27 @@ public class AuthController {
     }
 
     /**
-     * 로그인 API (POST /api/auth/login)
-     * @param authRequest username, password가 담긴 JSON 요청 본문
-     * @return 성공 시 JWT 토큰, 실패 시 에러 메시지
+     * 사용자 로그인을 처리하고 인증에 성공하면 JWT 토큰을 발급하는 API입니다.
+     *
+     * @param authRequest 로그인에 필요한 사용자 이름과 비밀번호를 담은 DTO.
+     * @return 인증 성공 시 JWT 토큰, 실패 시 에러 메시지를 담은 JSON 객체.
+     * @throws Exception 인증 과정에서 발생할 수 있는 예외.
      */
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthRequest authRequest) throws Exception {
-
-        // 1. Spring Security의 AuthenticationManager로 사용자 인증 시도
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.username, authRequest.password)
             );
         } catch (BadCredentialsException e) {
-            // 2. 인증 실패 (아이디 또는 비밀번호 틀림)
             return ResponseEntity
-                    .status(401) // 401 Unauthorized
+                    .status(401)
                     .body(Map.of("message", "아이디 또는 비밀번호가 잘못되었습니다."));
         }
 
-        // 3. 인증 성공
-        // 4. UserDetailsServiceImpl을 통해 DB에서 사용자 정보 로드
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.username);
-
-        // 5. JwtTokenUtil을 사용해 JWT 토큰 생성
         final String token = jwtTokenUtil.generateToken(userDetails);
 
-        // 6. 생성된 토큰을 AuthResponse DTO에 담아 반환
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }
